@@ -3,8 +3,6 @@ import { Scene } from "@babylonjs/core/scene";
 import { DVEBRMeshCuller } from "./DVEBRMeshCuller";
 import { DVEBRFOManager } from "./DVEBRFOManger";
 import { DivineVoxelEngineRender } from "@divinevoxel/vlox/Contexts/Render/DivineVoxelEngineRender.js";
-import { Observable } from "@amodx/core/Observers/Observable.js";
-import { DVEBRMesh } from "../Meshes/DVEBRMesh.js";
 import type { Engine } from "@babylonjs/core/Engines/engine";
 import { DVEBRSectionMeshes } from "../Meshes/DVEBRSectionMeshesN";
 import { DVEBRMaterialRegister } from "../Matereials/DVEBRNodeMaterialsManager";
@@ -14,10 +12,6 @@ export interface DVEBabylonRendererInitData {
 }
 export class DVEBabylonRenderer extends DVERenderer {
   static instance: DVEBabylonRenderer;
-  observers = {
-    meshCreated: new Observable<DVEBRMesh>(),
-    meshDisposed: new Observable<DVEBRMesh>(),
-  };
   sectorMeshes: DVEBRSectionMeshes;
   engine: Engine;
   scene: Scene;

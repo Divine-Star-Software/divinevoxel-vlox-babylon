@@ -456,10 +456,10 @@ export class BVHViewer {
   constructor(
     public mesh: Mesh,
     public scene: Scene,
-    tree: Float32Array,
-    treeIndices: Uint32Array,
-    public vertices: Float32Array,
-    public indices: Uint32Array
+    tree: Float32Array<any>,
+    treeIndices: Uint32Array<any>,
+    public vertices: Float32Array<any>,
+    public indices: Uint32Array<any>
   ) {
     console.warn("get other data", vertices, indices);
     this.tool.tree = tree;
