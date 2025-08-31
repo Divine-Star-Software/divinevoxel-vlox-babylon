@@ -14,6 +14,7 @@ export class VoxelMesher {
     const raw = PaintVoxelData.ToRaw(voxel);
     const meshedVoxel = MeshVoxel(raw);
     if (!meshedVoxel) return null;
+    console.warn("meshed voxel", voxel.id, voxel, meshedVoxel);
     const mesh = new Mesh("", this.scene);
     mesh.setEnabled(false);
     DVEBRMesh.UpdateVertexData(

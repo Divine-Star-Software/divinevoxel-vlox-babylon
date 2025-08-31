@@ -18,6 +18,7 @@ export class VoxelImager {
   _camera: ArcRotateCamera;
 
   _imageSize = 64;
+
   constructor(public scene: Scene) {
     this._mesher = new VoxelMesher(scene);
     this._2dCanvas.width = this._imageSize;
@@ -37,7 +38,7 @@ export class VoxelImager {
     );
 
     this._rtt = rtt;
-    scene.customRenderTargets.push(rtt);
+    this.scene.customRenderTargets.push(this._rtt);
     rtt.clearColor = new Color4(0, 0, 0, 0);
     rtt.renderList = [];
 
@@ -63,10 +64,15 @@ export class VoxelImager {
     camera.orthoTop = zoom / ratio;
   }
 
+  private _isReady() {
+    if (!this._rtt.isReadyForRendering()) return false;
+    return true;
+  }
   private _waitTillReady() {
     return new Promise((resolve) => {
       const run = () => {
-        if (this._rtt.isReadyForRendering()) {
+        if (this._isReady()) {
+    
           return resolve(true);
         }
         setTimeout(run, 10);
@@ -85,18 +91,18 @@ export class VoxelImager {
   }
 
   async createImageFromMesh(mesh: Mesh): Promise<string> {
-    if (!this._rtt.isReadyForRendering()) await this._waitTillReady();
     const rtt = this._rtt;
+    rtt.renderList = [mesh];
+    if (!this._isReady()) await this._waitTillReady();
+
     const ctx = this._2dContext;
 
-    rtt.renderList = [mesh];
     rtt.render();
-    //  displayScene.render();
 
     const rawPixels = await rtt.readPixels()!;
 
     const imageData = new ImageData(
-      new Uint8ClampedArray(rawPixels.buffer),
+      new Uint8ClampedArray(rawPixels.buffer as any),
       this._imageSize,
       this._imageSize
     );
@@ -105,7 +111,7 @@ export class VoxelImager {
     ctx.save();
     ctx.clearRect(0, 0, this._imageSize, this._imageSize);
     ctx.scale(1, -1);
-    ctx.drawImage(bitmap, 0, -this._imageSize); // draw flipped
+    ctx.drawImage(bitmap, 0, -this._imageSize);
     ctx.restore();
 
     return this._2dCanvas.toDataURL("image/png");

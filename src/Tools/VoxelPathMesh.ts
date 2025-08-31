@@ -34,7 +34,6 @@ export class VoxelPathSegmentMesh extends Mesh {
   positions: number[] = [];
   indices: number[] = [];
 
-  private _dispose: () => void;
   _dirty = false;
   constructor(
     public pathMesh: VoxelPathMesh,
@@ -61,16 +60,6 @@ export class VoxelPathSegmentMesh extends Mesh {
     this.update();
 
     this.renderingGroupId = 1;
-
-    const update = () => {
-      this.update();
-    };
-    this.segment.addEventListener("updated", update);
-    this._dispose = () => {
-      this.segment.removeEventListener("updated", update);
-    };
-
-    this.update();
   }
 
   update() {
@@ -161,11 +150,6 @@ export class VoxelPathSegmentMesh extends Mesh {
       this.removeVerticesData(bufferKind);
     }
   }
-
-  dispose() {
-    super.dispose();
-    this._dispose();
-  }
 }
 
 export class VoxelPathMesh {
@@ -176,10 +160,7 @@ export class VoxelPathMesh {
   path: VoxelPath;
   segments: VoxelPathSegmentMesh[] = [];
 
-  constructor(
-    public scene: Scene,
-    public name = ""
-  ) {
+  constructor(public scene: Scene, public name = "") {
     if (!VoxelPathMesh.Materials.has(scene)) {
       const newMat = new ShaderMaterial("", scene, "voxelPath", {
         uniforms: ["color", "world", "viewProjection"],
@@ -201,32 +182,26 @@ export class VoxelPathMesh {
     this._material.setColor4("color", this.color);
   }
 
+  addSegment(segment: VoxelPathSegment) {
+    const segmentMesh = new VoxelPathSegmentMesh(this, segment.path, segment);
+    this.segments.push(segmentMesh);
+    return segmentMesh;
+  }
+
+  removeSegment(segment: VoxelPathSegment) {
+    for (let i = 0; i < this.segments.length; i++) {
+      if (this.segments[i].segment == segment) {
+        this.segments[i].dispose();
+        this.segments.splice(i, 1);
+      }
+    }
+  }
+
   setPath(path: VoxelPath) {
     this.path = path;
     for (let i = 0; i < path.segments.length; i++) {
-      this.segments.push(
-        new VoxelPathSegmentMesh(this, path, path.segments[i])
-      );
+      this.addSegment(path.segments[i]);
     }
-    const segmentAdded = this.path.createEventListener(
-      "segmentAdded",
-      ({ detail: segment }) => {
-        this.segments.push(new VoxelPathSegmentMesh(this, path, segment));
-      }
-    );
-    this.path.addEventListener("segmentAdded", segmentAdded);
-    const segmentRemoved = this.path.createEventListener(
-      "segmentRemoved",
-      ({ detail: segment }) => {
-        for (let i = 0; i < this.segments.length; i++) {
-          if (this.segments[i].segment == segment) {
-            this.segments[i].dispose();
-            this.segments.splice(i, 1);
-          }
-        }
-      }
-    );
-    this.path.addEventListener("segmentRemoved", segmentRemoved);
   }
 
   build() {

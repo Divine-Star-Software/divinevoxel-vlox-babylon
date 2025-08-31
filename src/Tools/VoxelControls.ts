@@ -138,6 +138,8 @@ class PositionAxes {
   deltaPoint = new Vector3();
   deltas = new Vector3();
 
+
+
   update(ray: Ray, mouseDown: boolean) {
     min.set(
       this.min.x + this.mesh.position.x + this.controls.parent.position.x,
@@ -300,6 +302,7 @@ export class VoxelControls extends TypedEventTarget<VoxelControlsEvents> {
     ]);
   }
 
+
   setOriginAndSize(origin: Vector3Like, size: Vector3Like) {
     this.origin = origin;
     this.size = size;
@@ -320,9 +323,27 @@ export class VoxelControls extends TypedEventTarget<VoxelControlsEvents> {
     tempRay.origin.set(rayOrigin.x, rayOrigin.y, rayOrigin.z);
     tempRay.direction.set(rayDirection.x, rayDirection.y, rayDirection.z);
     tempRay.length = length;
-    this.xAxes.update(tempRay, mouseDown);
-    this.yAxes.update(tempRay, mouseDown);
-    this.zAxes.update(tempRay, mouseDown);
+
+    let updated = false;
+    if (this.xAxes.active) {
+      updated = true;
+      this.xAxes.update(tempRay, mouseDown);
+    }
+    if (this.yAxes.active) {
+      updated = true;
+      this.yAxes.update(tempRay, mouseDown);
+    }
+    if (this.zAxes.active) {
+      updated = true;
+      this.zAxes.update(tempRay, mouseDown);
+    }
+    if (!updated) {
+      this.xAxes.update(tempRay, mouseDown);
+      if (!this.xAxes.active) this.yAxes.update(tempRay, mouseDown);
+      if (!this.xAxes.active && !this.yAxes.active)
+        this.zAxes.update(tempRay, mouseDown);
+    }
+
     if (this.xAxes._dirty || this.yAxes._dirty || this.zAxes._dirty) {
       this.material.setArray4("states", this._states as any);
       this.xAxes._dirty = false;

@@ -25,30 +25,54 @@ let context: CanvasRenderingContext2D = canvas.getContext("2d")!;
 async function loadAndInvertImage(
   imgSrcData: string | HTMLImageElement
 ): Promise<string> {
-  if (!context) throw new Error("");
-  const prom: Promise<string> = new Promise((resolve, reject) => {
-    const image = typeof imgSrcData == "string" ? new Image() : imgSrcData;
-    image.onerror = (error) => reject(error);
-    if (typeof imgSrcData == "string") image.src = imgSrcData;
-    image.onload = () => {
-      canvas.width = image.width;
-      canvas.height = image.height;
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.imageSmoothingEnabled = false;
-      context.save();
-      context.translate(0, canvas.height);
-      context.scale(1, -1);
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      context.restore();
-      const dataUrl = canvas.toDataURL("image/png");
-      const returnImage = new Image(canvas.width, canvas.height);
-      returnImage.src = dataUrl;
-      returnImage.onload = () => {
-        resolve(returnImage.src);
-      };
-    };
-  });
-  return prom;
+  if (!context) throw new Error("Canvas 2D context is required");
+
+  const image: HTMLImageElement =
+    typeof imgSrcData === "string" ? new Image() : imgSrcData;
+
+  if (typeof imgSrcData === "string") {
+    image.crossOrigin = "anonymous";
+  }
+
+  const ensureReady = () => {
+    if (typeof image.decode === "function") {
+      return image.decode().catch((err) => {
+        if (image.complete && image.naturalWidth > 0) return;
+        throw err;
+      });
+    }
+
+    if (image.complete && image.naturalWidth > 0) return Promise.resolve();
+
+    return new Promise<void>((resolve, reject) => {
+      const onLoad = () => resolve();
+      const onError = (e: any) => reject(e);
+      image.addEventListener("load", onLoad, { once: true });
+      image.addEventListener("error", onError, { once: true });
+    });
+  };
+
+  if (typeof imgSrcData === "string") {
+    image.src = imgSrcData;
+  }
+
+  await ensureReady();
+
+  const w = image.naturalWidth;
+  const h = image.naturalHeight;
+  canvas.width = w;
+  canvas.height = h;
+
+  context.clearRect(0, 0, w, h);
+  context.imageSmoothingEnabled = false;
+
+  context.save();
+  context.translate(0, h);
+  context.scale(1, -1);
+  context.drawImage(image, 0, 0, w, h);
+  context.restore();
+
+  return canvas.toDataURL("image/png");
 }
 
 const buildMesh = (
@@ -58,6 +82,7 @@ const buildMesh = (
   stateID: string
 ) => {
   const meshedVoxel = MeshVoxel(voxelData);
+  console.warn("mesh voxel", voxelId, stateID, meshedVoxel);
   if (!meshedVoxel) return false;
   if (meshedVoxel[0][0] == 1) throw new Error(`Not in right mode`);
   dataTool.setRaw(voxelData).process();

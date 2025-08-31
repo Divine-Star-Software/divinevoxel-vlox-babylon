@@ -143,6 +143,19 @@ export class VoxelSelectionHighlight {
     this.mesh.dispose();
   }
 
+  private _enabled = true;
+  isEnaebled() {
+    return this._enabled;
+  }
+  setEnabled(enabled: boolean) {
+    this._enabled = enabled;
+    this.mesh.setEnabled(enabled);
+  }
+
+  setColor(r: number, g: number, b: number, a: number) {
+    this.mesh.setColor(r, g, b, a);
+  }
+
   update(selection: IVoxelSelection) {
     this.selection = selection;
     this.mesh.clear();
