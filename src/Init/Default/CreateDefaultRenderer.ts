@@ -39,9 +39,12 @@ export async function CreateTextures(
     TextureManager.registerTexture(textureData);
   }
 
-  await TextureManager.compiledTextures({
-    createCache: CacheManager.cacheStoreEnabled,
-  },progress);
+  await TextureManager.compiledTextures(
+    {
+      createCache: CacheManager.cacheStoreEnabled,
+    },
+    progress
+  );
 
   for (const [key, type] of TextureManager._compiledTextures) {
     if (!type.images!.length) continue;
@@ -156,7 +159,11 @@ export async function CreateDefaultRenderer(
   }
 
   let time = 0;
-  console.warn(TextureManager._compiledTextures.get("dve_voxel"));
+  console.warn(
+    TextureManager,
+    TextureManager._compiledTextures,
+    TextureManager._compiledTextures.get("dve_voxel")
+  );
   scene.registerBeforeRender(() => {
     if (scene.deltaTime === undefined) return;
     for (const [key, type] of TextureManager._compiledTextures) {
