@@ -159,6 +159,7 @@ export class VoxelSelectionHighlight {
   update(selection: IVoxelSelection) {
     this.selection = selection;
     this.mesh.clear();
+    let addedVoxelFace = false;
     const { x: ox, y: oy, z: oz } = selection.origin;
     const { x: sx, y: sy, z: sz } = selection.size;
     const ex = ox + sx;
@@ -174,6 +175,7 @@ export class VoxelSelectionHighlight {
             const ny = y + n[1];
             const nz = z + n[2];
             if (!selection.isSelected(nx, ny, nz)) {
+              addedVoxelFace = true;
               addVoxelFace(
                 face,
                 this.outlineAll,
@@ -190,6 +192,11 @@ export class VoxelSelectionHighlight {
       }
     }
 
-    this.mesh.build();
+    if (addedVoxelFace) {
+      this.mesh.build();
+      this.mesh.setEnabled(this.isEnaebled());
+    } else {
+      this.mesh.setEnabled(false);
+    }
   }
 }

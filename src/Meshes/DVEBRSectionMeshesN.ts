@@ -9,7 +9,7 @@ import { SectionMesh } from "@divinevoxel/vlox/Renderer";
 import {
   CompactedSectionVoxelMesh,
   CompactedMeshData,
-} from "@divinevoxel/vlox/Mesher/Geomtry/CompactedSectionVoxelMesh";
+} from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
 import { LocationData } from "@divinevoxel/vlox/Math";
 import { SubBufferMesh } from "./VoxelScene/SubBufferMesh";
 const meshData = new CompactedMeshData();

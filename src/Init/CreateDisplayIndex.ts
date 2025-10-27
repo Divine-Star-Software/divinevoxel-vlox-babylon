@@ -1,6 +1,6 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene } from "@babylonjs/core/scene";
-import { MeshVoxel } from "@divinevoxel/vlox/Mesher/Functions/MeshVoxel";
+import { MeshVoxel } from "@divinevoxel/vlox/Mesher/Voxels/MeshVoxel";
 import { VoxelCursor } from "@divinevoxel/vlox//Voxels/Cursor/VoxelCursor";
 import {
   VoxelData,
@@ -14,7 +14,7 @@ import { VoxelIndex } from "@divinevoxel/vlox/Voxels/Indexes/VoxelIndex";
 import { VoxelModelIndex } from "@divinevoxel/vlox/Voxels/Indexes/VoxelModelIndex";
 import { VoxelTextureIndex } from "@divinevoxel/vlox/Voxels/Indexes/VoxelTextureIndex";
 import { CacheManager } from "@divinevoxel/vlox/Cache/CacheManager";
-import { DVEBRMesh } from "../Meshes/DVEBRMesh";
+import { DVEBRVoxelMesh } from "../Meshes/DVEBRVoxelMesh";
 import { VoxelImager } from "../Voxels/VoxelImager";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress";
 
@@ -82,9 +82,7 @@ const buildMesh = (
   stateID: string
 ) => {
   const meshedVoxel = MeshVoxel(voxelData);
-  console.warn("mesh voxel", voxelId, stateID, meshedVoxel);
   if (!meshedVoxel) return false;
-  if (meshedVoxel[0][0] == 1) throw new Error(`Not in right mode`);
   dataTool.setRaw(voxelData).process();
   const renderedMaterial = dataTool.getRenderedMaterial()!;
 
@@ -102,10 +100,10 @@ const buildMesh = (
     material._material
   );
 
-  DVEBRMesh.UpdateVertexData(
+  DVEBRVoxelMesh.UpdateVertexData(
     mesh,
     scene.getEngine() as any,
-    meshedVoxel[0][1][0]
+    meshedVoxel[0][0]
   );
 
   return mesh;

@@ -1,19 +1,31 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 
-
 import { Buffer, VertexBuffer } from "@babylonjs/core/Meshes/buffer.js";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { CompactSubMesh } from "@divinevoxel/vlox/Mesher/Types/Mesher.types";
-import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Geomtry/VoxelMeshVertexStructCursor";
-export class DVEBRMesh {
+import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshVertexStructCursor";
+import { Scene } from "@babylonjs/core/scene";
+import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
+export class DVEBRVoxelMesh {
+
+  static CreateSubMesh(data: CompactSubMesh, scene: Scene, engine: Engine) {
+    const [materialId, vertexBuffer, indexBuffer] = data;
+    const mesh = new Mesh("", scene);
+    const material = DVEBabylonRenderer.instance.materials.get(materialId);
+    mesh.material = material._material;
+    this.UpdateVertexDataBuffers(mesh, engine, vertexBuffer, indexBuffer);
+    return mesh;
+  }
+
   static UpdateVertexData(mesh: Mesh, engine: Engine, data: CompactSubMesh) {
     this.UpdateVertexDataBuffers(mesh, engine, data[1], data[2]);
   }
+  
   static UpdateVertexDataBuffers(
     mesh: Mesh,
     engine: Engine,
     vertices: Float32Array,
-    indices: Uint16Array | Uint32Array
+    indices: Uint16Array<any> | Uint32Array<any>
   ) {
     const buffer = new Buffer(engine, vertices, false);
     const geo = mesh.geometry ? mesh.geometry : mesh;
@@ -40,19 +52,6 @@ export class DVEBRMesh {
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.NormalOffset,
-        3
-      )
-    );
-    geo.setVerticesBuffer(
-      new VertexBuffer(
-        engine,
-        buffer,
-        VertexBuffer.ColorKind,
-        false,
-        undefined,
-        VoxelMeshVertexStructCursor.VertexFloatSize,
-        undefined,
-        VoxelMeshVertexStructCursor.ColorOffset,
         3
       )
     );
@@ -129,8 +128,5 @@ export class DVEBRMesh {
       );
     }
   } */
-  constructor(public _mesh: Mesh) {}
-  dispose(): void {
-    this._mesh.dispose();
-  }
+
 }

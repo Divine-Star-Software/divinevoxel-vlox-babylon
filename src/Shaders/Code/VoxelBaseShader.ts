@@ -60,7 +60,6 @@ in vec4 voxelData;
 //varying
 out vec3 worldPOS;
 out float vDistance;
-out vec3 worldPOSNoOrigin;
 out vec3 vNormal;
 out vec4 vColors;
 out float vFlow;
@@ -296,7 +295,6 @@ uniform int dve_voxel_animation_size;
 //varying
 in vec3 worldPOS;
 in float vDistance;
-in vec3 worldPOSNoOrigin;
 in vec3 vNormal;
 in vec4 vAO;
 in vec4 vColors;

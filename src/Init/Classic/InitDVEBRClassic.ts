@@ -1,5 +1,6 @@
 import { DVEBRShaderStore } from "../../Shaders/DVEBRShaderStore";
 import { VoxelBaseShader } from "../../Shaders/Code/VoxelBaseShader";
+import { ItemShader } from "../../Shaders/Code/ItemShader";
 import { VoxelParticleShader } from "../../Shaders/Code/VoxelParticleShader";
 import { DVEBRClassicMaterial } from "../../Matereials/Classic/DVEBRClassicMaterial";
 import { DVEBRDefaultMaterialBaseData } from "../../Matereials/Types/DVEBRDefaultMaterial.types";
@@ -30,6 +31,24 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   progress.startTask("Init Classic Renderer");
   await CreateTextures(initData.scene, initData.textureData, progress);
 
+  //items
+  DVEBRShaderStore.setShaderData(
+    "dve_item",
+    [
+      "world",
+      "viewProjection",
+      "dve_item",
+      "dve_item_animation",
+      "dve_item_animation_size",
+    ],
+    ["position", "normal", "textureIndex", "uv"]
+  );
+
+  DVEBRShaderStore.storeShader("dve_item", "vertex", ItemShader.GetVertex());
+
+  DVEBRShaderStore.storeShader("dve_item", "frag", ItemShader.GetFragment());
+
+  //voxel particles
   DVEBRShaderStore.setShaderData(
     "dve_voxel_particle",
     [

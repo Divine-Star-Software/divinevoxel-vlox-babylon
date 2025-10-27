@@ -9,7 +9,7 @@ import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { Plane } from "@babylonjs/core/Maths/math.plane";
-import { Vector3Like } from "@amodx/math";
+import { Vector3Axes, Vector3Like } from "@amodx/math";
 import { TypedEventTarget } from "@divinevoxel/vlox/Util/TypedEventTarget";
 
 Effect.ShadersStore["voxelControlsVertexShader"] = /*glsl */ `#version 300 es
@@ -45,17 +45,7 @@ void main(void) {
   FragColor = vec4(vColor, 1.);
 }
 `;
-enum Axes {
-  X,
-  Y,
-  Z,
-}
-type AxesNames = "x" | "y" | "z";
-const AxesRecord: Record<Axes, AxesNames> = {
-  [Axes.X]: "x",
-  [Axes.Y]: "y",
-  [Axes.Z]: "z",
-};
+
 const min = new Vector3();
 const max = new Vector3();
 
@@ -63,28 +53,34 @@ class PositionAxes {
   mesh: Mesh;
   _dirty = false;
 
+  get axesIndex() {
+    return Vector3Like.KeyIndexes()[this.axex];
+  }
+
   get hover() {
-    return this._states[this.axex * 4] == 1;
+    return this._states[this.axesIndex * 4] == 1;
   }
   set hover(hovver: boolean) {
-    this._states[this.axex * 4] = hovver ? 1 : 0;
+    this._states[this.axesIndex * 4] = hovver ? 1 : 0;
     this._dirty = true;
   }
 
   get active() {
-    return this._states[this.axex * 4 + 1] == 1;
+    return this._states[this.axesIndex * 4 + 1] == 1;
   }
   set active(active: boolean) {
-    this._states[this.axex * 4 + 1] = active ? 1 : 0;
+    this._states[this.axesIndex * 4 + 1] = active ? 1 : 0;
     this._dirty = true;
   }
+  startParentWorld = new Vector3();
+  lastSentPosition = new Vector3(Infinity);
 
   min: Vector3;
   max: Vector3;
   constructor(
     public controls: VoxelControls,
     public normal: Vector3,
-    public axex: Axes,
+    public axex: Vector3Axes,
     public _states: Float32Array
   ) {
     const tempMesh = CreateBox(
@@ -104,7 +100,7 @@ class PositionAxes {
     const colors: number[] = [];
     let j = 0;
     for (let i = 0; i < positons.length; i += 3) {
-      colors[j] = axex;
+      colors[j] = this.axesIndex;
       j++;
     }
     mesh.setVerticesBuffer(
@@ -137,9 +133,6 @@ class PositionAxes {
 
   deltaPoint = new Vector3();
   deltas = new Vector3();
-
-
-
   update(ray: Ray, mouseDown: boolean) {
     min.set(
       this.min.x + this.mesh.position.x + this.controls.parent.position.x,
@@ -154,7 +147,7 @@ class PositionAxes {
     if (this.active && !mouseDown) {
       this.active = false;
       this.controls._controlActive = false;
-      this.controls.dispatch("inactive", AxesRecord[this.axex]);
+      this.controls.dispatch("inactive", this.axex);
       return;
     }
 
@@ -189,12 +182,38 @@ class PositionAxes {
       const dy = Math.floor(projected.y);
       const dz = Math.floor(projected.z);
 
-      const needUpdate =
-        dx !== this.deltas.x || dy !== this.deltas.y || dz !== this.deltas.z;
+      const threshold = 0.25;
+      if (this.controls.mode === "delta") {
+        const needUpdate =
+          dx !== this.deltas.x || dy !== this.deltas.y || dz !== this.deltas.z;
 
-      if (needUpdate) {
-        this.deltas.set(dx, dy, dz);
-        this.controls.dispatch("position", { x: dx, y: dy, z: dz });
+        if (needUpdate) {
+          this.deltas.set(dx, dy, dz);
+          this.controls.dispatch("position", {
+            delta: { x: dx, y: dy, z: dz },
+            position: { x: 0, y: 0, z: 0 },
+          });
+        }
+      } else {
+        const target = this.startParentWorld.add(projected);
+        const px = Math.abs(target.x) < threshold ? 0 : Math.round(target.x);
+        const py = Math.abs(target.y) < threshold ? 0 : Math.round(target.y);
+        const pz = Math.abs(target.z) < threshold ? 0 : Math.round(target.z);
+
+        if (
+          px !== this.lastSentPosition.x ||
+          py !== this.lastSentPosition.y ||
+          pz !== this.lastSentPosition.z
+        ) {
+          const dx = px - this.lastSentPosition.x;
+          const dy = py - this.lastSentPosition.y;
+          const dz = pz - this.lastSentPosition.z;
+          this.lastSentPosition.set(px, py, pz);
+          this.controls.dispatch("position", {
+            position: { x: px, y: py, z: pz },
+            delta: { x: dx, y: dy, z: dz },
+          });
+        }
       }
     }
 
@@ -202,29 +221,60 @@ class PositionAxes {
       if (mouseDown && !this.active && !this.controls._controlActive) {
         this.active = true;
         this.deltas.set(0, 0, 0);
-        this.deltaPoint.set(
-          this.controls.parent.position.x,
-          this.controls.parent.position.y,
-          this.controls.parent.position.z
+
+        // Build the same axis-aligned drag plane we use during update()
+        const axis = this.normal;
+        const planeNormal = Vector3.Cross(
+          Vector3.Cross(axis, ray.direction),
+          axis
+        ).normalize();
+
+        // Intersect ray with that plane to get the exact click point
+        const clickPlane = Plane.FromPositionAndNormal(
+          this.controls.parent.position,
+          planeNormal
         );
+        const dist = ray.intersectsPlane(clickPlane);
+
+        const clickPoint =
+          dist == null
+            ? this.controls.parent.position.clone()
+            : ray.direction.scale(dist).addInPlace(ray.origin);
+
+        // Seed drag at the click, so initial projected delta is zero
+        this.deltaPoint.copyFrom(clickPoint);
+
+        // For absolute mode, we add projected movement to the parent's world position
+        this.startParentWorld.copyFrom(this.controls.parent.position);
+
+        // Initialize lastSentPosition to current rounded parent position to avoid a first-frame emit
+        if (this.controls.mode === "position") {
+          this.lastSentPosition.set(
+            Math.round(this.controls.parent.position.x),
+            Math.round(this.controls.parent.position.y),
+            Math.round(this.controls.parent.position.z)
+          );
+        } else {
+          this.lastSentPosition.set(0, 0, 0);
+        }
+
         this.controls._controlActive = true;
-        this.controls.dispatch("active", AxesRecord[this.axex]);
+        this.controls.dispatch("active", this.axex);
       }
       if (!this.hover) this.hover = true;
     } else {
       if (this.hover) this.hover = false;
     }
   }
-
   dispose() {
     this.mesh.dispose();
   }
 }
 
 export interface VoxelControlsEvents {
-  position: Vector3Like;
-  active: AxesNames;
-  inactive: AxesNames;
+  position: { position: Vector3Like; delta: Vector3Like };
+  active: Vector3Axes;
+  inactive: Vector3Axes;
 }
 
 const tempRay = new Ray(new Vector3(0, 0, 0), new Vector3(1, 1, 1), 10000);
@@ -234,7 +284,7 @@ export class VoxelControls extends TypedEventTarget<VoxelControlsEvents> {
   xAxes: PositionAxes;
   yAxes: PositionAxes;
   zAxes: PositionAxes;
-  colors: Record<Axes, Color3>;
+  colors: Color3[];
   parent: TransformNode;
   material: ShaderMaterial;
   _states: Float32Array;
@@ -243,7 +293,10 @@ export class VoxelControls extends TypedEventTarget<VoxelControlsEvents> {
   origin = Vector3Like.Create();
   size = Vector3Like.Create(1, 1, 1);
 
-  constructor(public scene: Scene) {
+  constructor(
+    public scene: Scene,
+    public mode: "delta" | "position" = "position"
+  ) {
     super();
     if (!VoxelControls.Materials.has(scene)) {
       const material = new ShaderMaterial("", scene, "voxelControls", {
@@ -264,21 +317,21 @@ export class VoxelControls extends TypedEventTarget<VoxelControlsEvents> {
     this.xAxes = new PositionAxes(
       this,
       new Vector3(1, 0, 0),
-      Axes.X,
+      "x",
       this._states
     );
 
     this.yAxes = new PositionAxes(
       this,
       new Vector3(0, 1, 0),
-      Axes.Y,
+      "y",
       this._states
     );
 
     this.zAxes = new PositionAxes(
       this,
       new Vector3(0, 0, 1),
-      Axes.Z,
+      "z",
       this._states
     );
 
@@ -292,20 +345,24 @@ export class VoxelControls extends TypedEventTarget<VoxelControlsEvents> {
 
   updateColors(x: Color3, y: Color3, z: Color3) {
     if (!this.colors) this.colors = {} as any;
-    this.colors[Axes.X] = x;
-    this.colors[Axes.Y] = y;
-    this.colors[Axes.Z] = z;
+    this.colors[0] = x;
+    this.colors[1] = y;
+    this.colors[2] = z;
     this.material.setColor3Array("colors", [
-      this.colors[Axes.X],
-      this.colors[Axes.Y],
-      this.colors[Axes.Z],
+      this.colors[0],
+      this.colors[1],
+      this.colors[2],
     ]);
   }
-
 
   setOriginAndSize(origin: Vector3Like, size: Vector3Like) {
     this.origin = origin;
     this.size = size;
+  }
+
+  setOrigin(origin: Vector3Like) {
+    this.origin = origin;
+    this.updatePosition();
   }
 
   updatePosition() {

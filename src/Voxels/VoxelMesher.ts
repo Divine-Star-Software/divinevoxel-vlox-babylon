@@ -1,8 +1,8 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene } from "@babylonjs/core/scene";
-import { MeshVoxel } from "@divinevoxel/vlox/Mesher/Functions/MeshVoxel";
+import { MeshVoxel } from "@divinevoxel/vlox/Mesher/Voxels/MeshVoxel";
 import { PaintVoxelData } from "@divinevoxel/vlox/Voxels";
-import { DVEBRMesh } from "../Meshes/DVEBRMesh";
+import { DVEBRVoxelMesh } from "../Meshes/DVEBRVoxelMesh";
 import { VoxelCursor } from "@divinevoxel/vlox/Voxels/Cursor/VoxelCursor";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
 const dataTool = new VoxelCursor();
@@ -13,14 +13,14 @@ export class VoxelMesher {
   meshVoxel(voxel: PaintVoxelData) {
     const raw = PaintVoxelData.ToRaw(voxel);
     const meshedVoxel = MeshVoxel(raw);
-    if (!meshedVoxel) return null;
-    console.warn("meshed voxel", voxel.id, voxel, meshedVoxel);
+    if (!meshedVoxel || !meshedVoxel[0][0]) return null;
     const mesh = new Mesh("", this.scene);
     mesh.setEnabled(false);
-    DVEBRMesh.UpdateVertexData(
+
+    DVEBRVoxelMesh.UpdateVertexData(
       mesh,
       this.scene.getEngine() as any,
-      meshedVoxel[0][1][0]
+      meshedVoxel[0][0]
     );
     dataTool.setRaw(raw).process();
     const renderedMaterial = dataTool.getRenderedMaterial()!;

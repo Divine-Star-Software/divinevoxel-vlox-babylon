@@ -38,6 +38,7 @@ export async function CreateTextures(
   } else {
     TextureManager.registerTexture(textureData);
   }
+  
 
   await TextureManager.compiledTextures(
     {
@@ -135,13 +136,13 @@ export async function CreateDefaultRenderer(
   }
 
   materials.push(
-    /*      {
-      id: "dve_node",
-      shaderId: "dve_node",
-      textureTypeId: "dve_node",
-      alphaBlending: false,
-      alphaTesting: true,
-    }, */
+    {
+      id: "dve_item",
+      shaderId: "dve_item",
+      textureTypeId: "dve_item",
+      alphaBlending: true,
+      alphaTesting: false,
+    },
     {
       id: "dve_voxel_particle",
       shaderId: "dve_voxel_particle",
@@ -159,11 +160,6 @@ export async function CreateDefaultRenderer(
   }
 
   let time = 0;
-  console.warn(
-    TextureManager,
-    TextureManager._compiledTextures,
-    TextureManager._compiledTextures.get("dve_voxel")
-  );
   scene.registerBeforeRender(() => {
     if (scene.deltaTime === undefined) return;
     for (const [key, type] of TextureManager._compiledTextures) {

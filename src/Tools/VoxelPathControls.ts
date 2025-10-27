@@ -57,11 +57,12 @@ class PointControl {
   isHovered() {
     return this._hovered;
   }
+
   setEnabled(enabled: boolean) {
     if (this._enabled && enabled) return;
     this._enabled = enabled;
     if (enabled) {
-      const control = new VoxelControls(this.mesh.getScene());
+      const control = new VoxelControls(this.mesh.getScene(), "delta");
       control.setOriginAndSize(this.mesh.position, voxelSize);
       const position = new Vector3(...this.segment.getPoint(this.pointIndex));
       control.setEnabled(true);
@@ -75,7 +76,11 @@ class PointControl {
 
       this.control.addEventListener(
         "position",
-        ({ detail: { x: dx, y: dy, z: dz } }) => {
+        ({
+          detail: {
+            delta: { x: dx, y: dy, z: dz },
+          },
+        }) => {
           const x = dx + position.x;
           const y = dy + position.y;
           const z = dz + position.z;
@@ -135,7 +140,7 @@ export class VoxelPathControls {
   private _mouseDown = false;
   private _disposePath: (() => void) | null = null;
   private _hoveredIndex = -1;
-  path: VoxelPath;
+  path: VoxelPath | null = null;
 
   constructor(public scene: Scene, public rayProvider: RayProvider) {
     this.mesh = new VoxelPathMesh(scene, "");
@@ -164,7 +169,9 @@ export class VoxelPathControls {
     );
     const point = segment.getPoint(pointIndex);
     instance.position.set(...point);
-    this._pointControls.push(new PointControl(segment, pointIndex, instance));
+    const control = new PointControl(segment, pointIndex, instance);
+    this._pointControls.push(control);
+    return control;
   }
 
   getMode() {
@@ -216,6 +223,26 @@ export class VoxelPathControls {
     return this._enabled;
   }
 
+  clear() {
+    if (this.path) {
+      this.path.segments = [];
+      this.path = null;
+    }
+
+    this.clearMesh();
+  }
+
+  clearMesh() {
+    for (const segment of this.mesh.segments) {
+      segment.dispose();
+    }
+    this.mesh.segments = [];
+    for (const control of this._pointControls) {
+      control.dispose();
+    }
+    this._pointControls = [];
+  }
+
   update(mouseDown: boolean) {
     this._mouseDown = mouseDown;
     if (this._activeControl) {
@@ -247,6 +274,7 @@ export class VoxelPathControls {
   }
 
   private rebuildControls() {
+    if (!this.path) return;
     for (const contorl of this._pointControls) {
       contorl.dispose();
     }
@@ -254,28 +282,21 @@ export class VoxelPathControls {
     const lastSegment = this.path.lastSegment();
     for (let i = 0; i < this.path.segments.length; i++) {
       const segment = this.path.segments[i];
-      if (segment.transient) continue;
       let controls = this._controlMap.get(segment);
       if (!controls) {
         controls = [];
       }
       this._controlMap.set(segment, controls);
-      this.addSegmentControl(segment, 0);
+      controls.push(this.addSegmentControl(segment, 0));
       if (lastSegment == segment) {
-        this.addSegmentControl(segment, 1);
+        controls.push(this.addSegmentControl(segment, 1));
       }
     }
   }
 
   private rebuild() {
-    for (const segment of this.mesh.segments) {
-      segment.dispose();
-    }
-    this.mesh.segments = [];
-    for (const control of this._pointControls) {
-      control.dispose();
-    }
-    this._pointControls = [];
+    if (!this.path) return;
+    this.clearMesh();
     for (let i = 0; i < this.path.segments.length; i++) {
       const segment = this.path.segments[i];
       this.addSegment(segment);
@@ -314,6 +335,7 @@ export class VoxelPathControls {
   }
 
   removedHovered() {
+    if (!this.path) return;
     if (this._hoveredIndex < 0) return false;
     const hovered = this._pointControls[this._hoveredIndex];
     this.path.removePoint(hovered.segment.index, hovered.pointIndex);

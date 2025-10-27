@@ -2,12 +2,12 @@ import type { Scene } from "@babylonjs/core/scene";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { VoxelMeshBVHStructCursor } from "@divinevoxel/vlox/Mesher/Geomtry/VoxelMeshBVHStructCursor";
-import { VoxelMeshBVHBuilder } from "@divinevoxel/vlox/Mesher/Geomtry/VoxelMeshBVHBuilder";
+import { VoxelMeshBVHStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshBVHStructCursor";
+import { VoxelMeshBVHBuilder } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshBVHBuilder";
 import { Vector2, Vector3, Vector4 } from "@babylonjs/core/Maths/";
 import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 
-import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Geomtry/VoxelMeshVertexStructCursor";
+import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshVertexStructCursor";
 
 const vertexCursor = new VoxelMeshVertexStructCursor();
 const v1Position = new Vector3();

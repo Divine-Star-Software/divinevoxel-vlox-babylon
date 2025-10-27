@@ -7,13 +7,13 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 import { BoundingInfo } from "@babylonjs/core/Culling/boundingInfo.js";
 import { DVESectionMeshes } from "@divinevoxel/vlox/Renderer";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
-import { DVEBRMesh } from "./DVEBRMesh";
+import { DVEBRVoxelMesh } from "./DVEBRVoxelMesh";
 import { SectionMesh } from "@divinevoxel/vlox/Renderer";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 import {
   CompactedSectionVoxelMesh,
   CompactedMeshData,
-} from "@divinevoxel/vlox/Mesher/Geomtry/CompactedSectionVoxelMesh";
+} from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
 import { LocationData } from "@divinevoxel/vlox/Math";
 
 const min = Vector3.Zero();
@@ -125,7 +125,7 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
         mesh.geometry!.releaseForMesh(mesh);
         mesh.metadata.buffer.dispose();
       }
-      mesh.metadata.buffer = DVEBRMesh.UpdateVertexDataBuffers(
+      mesh.metadata.buffer = DVEBRVoxelMesh.UpdateVertexDataBuffers(
         mesh,
         this.engine,
         meshData.verticies,
