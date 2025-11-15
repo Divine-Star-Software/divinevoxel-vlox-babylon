@@ -114,10 +114,6 @@ class PointControl {
   }
 
   delete() {
-    console.warn("delete point", {
-      segment: this.segment.index,
-      pointIndex: this.pointIndex,
-    });
     this.segment.path.removePoint(this.segment.index, this.pointIndex);
     this.dispose();
   }

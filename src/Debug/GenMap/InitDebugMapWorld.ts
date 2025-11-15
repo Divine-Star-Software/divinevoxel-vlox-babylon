@@ -50,11 +50,9 @@ export default function (followPosition = Vector3Like.Create()) {
     const follow = new TransformNode("follow", scene);
     const fixedParent = new TransformNode("fixedParent", scene);
 
-    console.warn("OFFSCREEN CANVAS", canvas, canvas.width, canvas.height);
     let lastWidth = 0,
       lastHeight = 0;
-    const world = DivineVoxelEngineWorld.instance;
-
+ 
     engine.runRenderLoop(() => {
       const width = canvas.width;
       const height = canvas.height;

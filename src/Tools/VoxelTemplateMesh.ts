@@ -25,9 +25,7 @@ export class VoxelTemplateMesh {
   }
   update(template: FullVoxelTemplate) {
     this.disposeMeshes();
-    console.warn("mesh the template", template, this.meshes);
     const data = MeshTemplate(template.toJSON());
-    console.warn("mesh data", data);
     if (!data) {
       console.error(`Could not mesh voxel template`, {
         template,
@@ -44,7 +42,6 @@ export class VoxelTemplateMesh {
         this.scene.getEngine() as any
       );
       mesh.renderingGroupId = 1;
-      console.warn("new submesh", { mesh, subMesh });
       mesh.parent = this.parent;
       this.meshes.push(mesh);
     }

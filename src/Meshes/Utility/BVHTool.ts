@@ -102,7 +102,6 @@ function VoxelGeometryIntersect(
     return intersectResult;
   }
 
-  console.warn("checking triangles");
   let vertexOffset = indexOffets.x;
   let indiceOffset = indexOffets.y + indiceOffsets.x;
 
@@ -461,9 +460,7 @@ export class BVHViewer {
     public vertices: Float32Array<any>,
     public indices: Uint32Array<any>
   ) {
-    console.warn("get other data", vertices, indices);
     this.tool.tree = tree;
-    console.warn(this.tool.treeIndex.getIndexAtLevel(12, 0));
     this.tool.indices = treeIndices;
     this.tool.structCursor.data = tree;
     if (!BVHViewer._box) {

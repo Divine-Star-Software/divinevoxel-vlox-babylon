@@ -174,7 +174,7 @@ export class DVEBRPBRMaterial implements MaterialInterface {
   }
 
   setNumber(uniform: string, value: number): void {
-    if (!this.plugin.uniformBuffer) return; // console.warn(`Material is not ready ${uniform} ${this.id}`);
+    if (!this.plugin.uniformBuffer) return;
     this.plugin.uniformBuffer.updateFloat(uniform, value);
   }
   setNumberArray(uniform: string, value: ArrayLike<number>): void {
