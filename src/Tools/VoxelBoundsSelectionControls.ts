@@ -1,13 +1,13 @@
 import { Scene } from "@babylonjs/core/scene";
 import { VoxelControls } from "./VoxelControls";
 import { VoxelSelectionHighlight } from "./VoxelSelectionHighlight";
-import { VoxelBoxSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelBoxSelection";
+import { VoxelBoundsSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelBoundsSelection";
 import { TypedEventTarget } from "@divinevoxel/vlox/Util/TypedEventTarget";
 import { RayProvider } from "@divinevoxel/vlox/Builder/RayProvider";
 import { Vec3Array, Vector3Like } from "@amodx/math";
 import { Axes } from "@amodx/math/Vectors/Axes";
 import { PointControl } from "./PointControl";
-interface VoxelBoxSelectionControlsEvents {
+interface VoxelBoundsSelectionControlsEvents {
   "move-up": null;
   "move-down": null;
 }
@@ -26,7 +26,7 @@ const bitOpp = (b: 0 | 1) => (b ? 0 : 1) as 0 | 1;
 const coordFor = (bit: 0 | 1, minV: number, maxV: number) =>
   bit ? maxV : minV;
 
-export class VoxelBoxSelectionControls extends TypedEventTarget<VoxelBoxSelectionControlsEvents> {
+export class VoxelBoundsSelectionControls extends TypedEventTarget<VoxelBoundsSelectionControlsEvents> {
   axisControls: VoxelControls;
   selectionHighlight: VoxelSelectionHighlight;
   pointControls: PointControl[] | null = null;
@@ -36,7 +36,7 @@ export class VoxelBoxSelectionControls extends TypedEventTarget<VoxelBoxSelectio
   constructor(
     public scene: Scene,
     public rayProvider: RayProvider,
-    public selection: VoxelBoxSelection,
+    public selection: VoxelBoundsSelection,
     public enableScaleAdjust = false
   ) {
     super();
@@ -108,7 +108,7 @@ export class VoxelBoxSelectionControls extends TypedEventTarget<VoxelBoxSelectio
     this.selectionHighlight.update(this.selection);
     this.axisControls.setOriginAndSize(
       this.selection.origin,
-      this.selection.size
+      this.selection.bounds.size
     );
     this.updatePointControlsFromBounds();
   }
@@ -167,7 +167,7 @@ export class VoxelBoxSelectionControls extends TypedEventTarget<VoxelBoxSelectio
 
     this.axisControls.setOriginAndSize(
       this.selection.origin,
-      this.selection.size
+      this.selection.bounds.size
     );
 
     const move = (dx: number, dy: number, dz: number) => {
@@ -178,7 +178,7 @@ export class VoxelBoxSelectionControls extends TypedEventTarget<VoxelBoxSelectio
       this.selection.reConstruct(
         this.selection.origin,
         Axes.UpReadOnly(),
-        Vector3Like.Add(this.selection.origin, this.selection.size),
+        Vector3Like.Add(this.selection.origin, this.selection.bounds.size),
         Axes.UpReadOnly()
       );
 

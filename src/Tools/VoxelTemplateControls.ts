@@ -1,8 +1,8 @@
 import { Scene } from "@babylonjs/core/scene";
 import { FullVoxelTemplate } from "@divinevoxel/vlox/Templates/Full/FullVoxelTemplate";
-import { VoxelBoxSelectionControls } from "./VoxelBoxSelectionControls";
+import { VoxelBoundsSelectionControls } from "./VoxelBoundsSelectionControls";
 import { RayProvider } from "@divinevoxel/vlox/Builder/RayProvider";
-import { VoxelBoxSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelBoxSelection";
+import { VoxelBoundsSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelBoundsSelection";
 import { Vector3Axes, Vector3Like } from "@amodx/math";
 import { Axes } from "@amodx/math/Vectors/Axes";
 import FlipTemplate from "@divinevoxel/vlox/Templates/Functions/FlipTemplate";
@@ -12,14 +12,14 @@ import RotateTemplate, {
 import { VoxelBuildSpace } from "@divinevoxel/vlox/Builder/VoxelBuildSpace";
 import { VoxelTemplateMesh } from "./VoxelTemplateMesh";
 export class VoxelTemplateControls {
-  selectionControls: VoxelBoxSelectionControls;
+  selectionControls: VoxelBoundsSelectionControls;
   mesh: VoxelTemplateMesh;
   constructor(
     public scene: Scene,
     public space: VoxelBuildSpace,
     public ray: RayProvider,
     public template: FullVoxelTemplate,
-    public selection: VoxelBoxSelection = new VoxelBoxSelection()
+    public selection: VoxelBoundsSelection = new VoxelBoundsSelection()
   ) {
     this.selection.reConstruct(
       this.selection.bounds.min,
@@ -27,7 +27,7 @@ export class VoxelTemplateControls {
       Vector3Like.Add(this.selection.bounds.min, template.bounds.size),
       Axes.UpReadOnly()
     );
-    this.selectionControls = new VoxelBoxSelectionControls(
+    this.selectionControls = new VoxelBoundsSelectionControls(
       scene,
       ray,
       this.selection,

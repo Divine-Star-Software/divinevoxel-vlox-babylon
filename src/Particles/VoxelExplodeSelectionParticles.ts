@@ -11,7 +11,7 @@ import { TextureManager } from "@divinevoxel/vlox/Textures/TextureManager";
 import { TextureId } from "@divinevoxel/vlox/Textures/Texture.types";
 import { DataCursorInterface } from "@divinevoxel/vlox/Voxels/Cursor/DataCursor.interface";
 import { GetXYZOrderArrayIndex } from "@divinevoxel/vlox/Math/Indexing";
-import { IVoxelSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelSelecton";
+import { IVoxelSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelSelection";
 import { VoxelPropertiesRegister } from "@divinevoxel/vlox/Voxels/Data/VoxelPropertiesRegister";
 import { SchemaRegister } from "@divinevoxel/vlox/Voxels/State/SchemaRegister";
 export class VoxelExplodeSelectionParticles {
@@ -20,11 +20,11 @@ export class VoxelExplodeSelectionParticles {
     cursor: DataCursorInterface
   ) {
     const { x: ox, y: oy, z: oz } = iSelection.origin;
-    const { x: sx, y: sy, z: sz } = iSelection.size;
+    const { x: sx, y: sy, z: sz } = iSelection.bounds.size;
     const ex = ox + sx;
     const ey = oy + sy;
     const ez = oz + sz;
-    const size = iSelection.size;
+    const size = iSelection.bounds.size;
     const textures: (TextureId | 0)[] = new Array(
       size.x * size.y * size.z
     ).fill(0);
@@ -193,9 +193,9 @@ export class VoxelExplodeSelectionParticles {
       totalVoxels++;
     }
     if (totalVoxels == 0) return false;
-    const size = iSelection.size;
+    const size = iSelection.bounds.size;
     const { x: ox, y: oy, z: oz } = iSelection.origin;
-    const { x: sx, y: sy, z: sz } = iSelection.size;
+    const { x: sx, y: sy, z: sz } = iSelection.bounds.size;
     const ex = ox + sx;
     const ey = oy + sy;
     const ez = oz + sz;

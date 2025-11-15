@@ -13,7 +13,8 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { RayProvider } from "@divinevoxel/vlox/Builder/RayProvider";
 import { VoxelSelectionHighlight } from "./VoxelSelectionHighlight";
 import { Mesh } from "@babylonjs/core";
-import { BoxVoxelTemplate } from "@divinevoxel/vlox/Templates/Shapes/BoxVoxelTemplate";
+import { VoxelShapeTemplate } from "@divinevoxel/vlox/Templates/Shapes/VoxelShapeTemplate";
+import { BoxVoxelShapeSelection } from "@divinevoxel/vlox/Templates/Shapes/Selections/BoxVoxelShapeSelection";
 import { VoxelTemplateSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelTemplateSelection";
 import { PathToolModes } from "@divinevoxel/vlox/Builder/Tools/Path/PahtTool";
 const min = new Vector3();
@@ -146,8 +147,14 @@ export class VoxelPathControls {
     this.mesh = new VoxelPathMesh(scene, "");
     const selection = new VoxelTemplateSelection();
     selection.setTemplate(
-      new BoxVoxelTemplate(
-        BoxVoxelTemplate.CreateNew({ width: 1, height: 1, depth: 1 })
+      new VoxelShapeTemplate(
+        VoxelShapeTemplate.CreateNew({
+          shapeSelection: BoxVoxelShapeSelection.CreateNew({
+            width: 1,
+            height: 1,
+            depth: 1,
+          }),
+        })
       )
     );
     const hoverPoint = new VoxelSelectionHighlight(scene);

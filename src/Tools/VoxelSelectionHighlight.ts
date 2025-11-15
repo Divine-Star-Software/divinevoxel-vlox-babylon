@@ -1,7 +1,7 @@
 import { Vec3Array } from "@amodx/math";
 import { Scene } from "@babylonjs/core/scene";
 import { VoxelFaceDirections, VoxelFaces } from "@divinevoxel/vlox/Math";
-import { IVoxelSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelSelecton";
+import { IVoxelSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelSelection";
 import { VoxelLineMesh } from "./VoxelLineMesh";
 
 const lineChecks: Record<VoxelFaces, Vec3Array[]> = {
@@ -156,15 +156,16 @@ export class VoxelSelectionHighlight {
     this.mesh.setColor(r, g, b, a);
   }
 
-  update(selection: IVoxelSelection) {
+  update(selection: IVoxelSelection, origin = selection.origin) {
     this.selection = selection;
     this.mesh.clear();
     let addedVoxelFace = false;
-    const { x: ox, y: oy, z: oz } = selection.origin;
-    const { x: sx, y: sy, z: sz } = selection.size;
+    const { x: ox, y: oy, z: oz } = origin;
+    const { x: sx, y: sy, z: sz } = selection.bounds.size;
     const ex = ox + sx;
     const ey = oy + sy;
     const ez = oz + sz;
+
     for (let x = ox; x < ex; x++) {
       for (let y = oy; y < ey; y++) {
         for (let z = oz; z < ez; z++) {
