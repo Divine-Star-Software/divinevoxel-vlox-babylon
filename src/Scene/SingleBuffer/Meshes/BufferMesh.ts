@@ -10,7 +10,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 //https://playground.babylonjs.com/#SF6VE4
 import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshVertexStructCursor";
-import { VoxelScene } from "../../Scene/VoxelScene";
+import { SingleBufferVoxelScene } from "../SingleBufferVoxelScene";
 import { BufferAllocator } from "./BufferAllocator";
 import { nextPowerOf2 } from "@divinevoxel/vlox/Util/Binary/BinaryFunctions";
 const min = new Vector3(-Infinity, -Infinity, -Infinity);
@@ -36,7 +36,7 @@ export class BufferMesh extends Mesh {
   _indicesAllocator: BufferAllocator;
 
   constructor(
-    public voxelScene: VoxelScene,
+    public voxelScene: SingleBufferVoxelScene,
     public totalVertices: number
   ) {
     super("", voxelScene.renderer.scene);

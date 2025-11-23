@@ -5,7 +5,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { CompactSubMesh } from "@divinevoxel/vlox/Mesher/Types/Mesher.types";
 import { ItemMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Items/Geomtry/ItemMeshVertexStructCursor";
 import { Scene } from "@babylonjs/core/scene";
-import { DVEBabylonRenderer } from "../../Renderer/DVEBabylonRenderer";
+import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
 export class DVEBRItemMesh {
   static CreateSubMesh(data: CompactSubMesh, scene: Scene, engine: Engine) {
     const [materialId, vertexBuffer, indexBuffer] = data;

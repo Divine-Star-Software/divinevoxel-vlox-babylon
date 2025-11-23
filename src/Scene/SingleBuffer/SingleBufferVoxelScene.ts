@@ -7,29 +7,22 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CompactedMeshData } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
 import { VoxelPalettesRegister } from "@divinevoxel/vlox/Voxels/Data/VoxelPalettesRegister";
-import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
-import { BufferAllocation, BufferMesh } from "../Meshes/VoxelScene/BufferMesh";
-import { SubBufferMesh } from "../Meshes/VoxelScene/SubBufferMesh";
+import { BufferAllocation, BufferMesh } from "./Meshes/BufferMesh";
+import { SubBufferMesh } from "./Meshes/SubBufferMesh";
 import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshVertexStructCursor";
 import { WorldSpaces } from "@divinevoxel/vlox/World/WorldSpaces";
 import { MeshRegister } from "@divinevoxel/vlox/Renderer/MeshRegister";
-import { SceneOptions } from "./SceneOptions";
-
+import { VoxelSceneInterface } from "../VoxelScene.interface";
 
 const min = Vector3.Zero();
 const max = new Vector3(16, 16, 16);
 const boundingBox = new BoundingBox(min, max);
 
-
-export class VoxelScene {
+export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
   _material: MultiMaterial;
   _meshBuffers: BufferMesh[] = [];
 
   active = new Map<SubMesh, SubBufferMesh>();
-  options: SceneOptions;
-  constructor(public renderer: DVEBabylonRenderer) {
-    this.options = new SceneOptions(renderer.scene);
-  }
   init(scene: Scene) {
     const multiMaterial = new MultiMaterial("Voxel Scene Material", scene);
     for (let i = 0; i < VoxelPalettesRegister.material._palette.length; i++) {

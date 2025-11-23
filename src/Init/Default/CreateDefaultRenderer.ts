@@ -15,7 +15,6 @@ import { TextureData } from "@divinevoxel/vlox/Textures/Texture.types.js";
 import { ImageArrayTexture } from "../../Textures/ImageArrayTexture.js";
 import { CacheManager } from "@divinevoxel/vlox/Cache/CacheManager.js";
 import { MaterialInterface } from "../../Matereials/MaterialInterface.js";
-import { VoxelScene } from "../../Scene/VoxelScene.js";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress.js";
 
 const defaultSubstances = [
@@ -38,7 +37,6 @@ export async function CreateTextures(
   } else {
     TextureManager.registerTexture(textureData);
   }
-  
 
   await TextureManager.compiledTextures(
     {
@@ -80,7 +78,7 @@ export async function CreateDefaultRenderer(
       scene: Scene,
       matData: NodeMaterialData
     ) => MaterialInterface;
-    afterCreate?: (scene: VoxelScene) => Promise<void>;
+    afterCreate?: () => Promise<void>;
     progress: WorkItemProgress;
   }
 ): Promise<DVEBabylonRenderer> {
@@ -169,13 +167,13 @@ export async function CreateDefaultRenderer(
         );
       }
     }
-    renderer.voxelScene.options.ubo.updateTime(time);
+    renderer.sceneOptions.ubo.updateTime(time);
     time += 0.1;
-    renderer.voxelScene.options.ubo.update();
+    renderer.sceneOptions.ubo.update();
   });
 
   InitDefaultEffects();
-  initData.afterCreate && (await initData.afterCreate(renderer.voxelScene));
+  initData.afterCreate && (await initData.afterCreate());
   progress.completeWorkItems(4);
   progress.setStatus("Done");
   await progress.wait(100);

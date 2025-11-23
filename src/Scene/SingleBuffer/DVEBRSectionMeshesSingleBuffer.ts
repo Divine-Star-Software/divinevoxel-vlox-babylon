@@ -4,18 +4,19 @@ import { Vector3 } from "@babylonjs/core/Maths/";
 import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 import { BoundingInfo } from "@babylonjs/core/Culling/boundingInfo.js";
 import { DVESectionMeshes } from "@divinevoxel/vlox/Renderer";
-import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
+import { DVEBabylonRenderer } from "../../Renderer/DVEBabylonRenderer";
 import { SectionMesh } from "@divinevoxel/vlox/Renderer";
 import {
   CompactedSectionVoxelMesh,
   CompactedMeshData,
 } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
 import { LocationData } from "@divinevoxel/vlox/Math";
-import { SubBufferMesh } from "./VoxelScene/SubBufferMesh";
+import { SubBufferMesh } from "./Meshes/SubBufferMesh";
+import { SingleBufferVoxelScene } from "./SingleBufferVoxelScene";
 const meshData = new CompactedMeshData();
 const location: LocationData = [0, 0, 0, 0];
 const found = new Set<string>();
-export class DVEBRSectionMeshes extends DVESectionMeshes {
+export class DVEBRSectionMeshesSingleBuffer extends DVESectionMeshes {
   static meshCache: Mesh[] = [];
   pickable = false;
   checkCollisions = false;
@@ -25,14 +26,15 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
   constructor(
     public scene: Scene,
     public engine: Engine,
-    public renderer: DVEBabylonRenderer
+    public renderer: DVEBabylonRenderer,
+    public voxelScene: SingleBufferVoxelScene
   ) {
     super();
     this.defaultBb = new BoundingInfo(Vector3.Zero(), new Vector3(16, 16, 16));
   }
 
   returnMesh(mesh: SubBufferMesh) {
-    this.renderer.voxelScene.removeMesh(mesh);
+    this.voxelScene.removeMesh(mesh);
   }
 
   updateVertexData(section: SectionMesh, data: CompactedSectionVoxelMesh) {
@@ -48,7 +50,7 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
       let needNew = true;
       if (section.meshes.has(subMeshMaterial)) {
         needNew = false;
-        mesh = this.renderer.voxelScene.updateMesh(
+        mesh = this.voxelScene.updateMesh(
           section.meshes.get(subMeshMaterial)!,
           meshData
         )!;
@@ -58,7 +60,7 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
       }
 
       if (needNew) {
-        mesh = this.renderer.voxelScene.addMesh(
+        mesh = this.voxelScene.addMesh(
           meshData,
           location[1],
           location[2],

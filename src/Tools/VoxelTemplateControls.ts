@@ -74,13 +74,6 @@ export class VoxelTemplateControls {
 
   update(selectionActive: boolean) {
     this.selectionControls.update(selectionActive);
-
-    console.log(
-      "update",
-      this.selection.bounds.min.x,
-      this.selection.bounds.min.y,
-      this.selection.bounds.min.z
-    );
     this.mesh.parent.position.set(
       this.selection.bounds.min.x,
       this.selection.bounds.min.y,

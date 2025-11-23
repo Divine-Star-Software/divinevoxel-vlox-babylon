@@ -75,7 +75,7 @@ export default function InitDVEPBR(initData: DVEBRPBRData) {
     progress,
     createMaterial: (renderer, scene, matData) => {
       const newMat = new DVEBRPBRMaterial(
-        renderer.voxelScene.options,
+        renderer.sceneOptions,
         matData.id,
         {
           scene,

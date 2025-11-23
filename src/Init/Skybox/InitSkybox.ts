@@ -45,7 +45,7 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
   skyboxMat.disableDepthWrite = true;
   skyboxMat.setUniformBuffer(
     "SceneOptions",
-    renderer.voxelScene.options.ubo.buffer
+    renderer.sceneOptions.ubo.buffer
   );
   return skybox;
 }

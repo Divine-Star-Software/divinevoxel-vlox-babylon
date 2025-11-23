@@ -58,10 +58,10 @@ function CullSectors(scene: Scene) {
 }
 
 export class DVEBRMeshCuller {
-  init(scene: Scene) {
- /*    scene.freezeActiveMeshes();
+  init(scene: Scene, bufferMode: "single" | "multi") {
+    scene.freezeActiveMeshes();
     scene.registerBeforeRender(() => {
       CullSectors(scene);
-    }); */
+    });
   }
 }

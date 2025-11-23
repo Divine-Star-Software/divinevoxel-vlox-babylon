@@ -1,13 +1,13 @@
 import type { Scene } from "@babylonjs/core/scene";
 import type { Engine } from "@babylonjs/core/Engines/engine";
 import { Geometry } from "@babylonjs/core/Meshes/geometry";
-import { Buffer } from "@babylonjs/core/Meshes/buffer";
+import { Buffer, VertexBuffer } from "@babylonjs/core/Meshes/buffer";
 import { Vector3 } from "@babylonjs/core/Maths/";
 import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 import { BoundingInfo } from "@babylonjs/core/Culling/boundingInfo.js";
 import { DVESectionMeshes } from "@divinevoxel/vlox/Renderer";
-import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
-import { DVEBRVoxelMesh } from "./DVEBRVoxelMesh";
+import { DVEBabylonRenderer } from "../../Renderer/DVEBabylonRenderer";
+import { DVEBRVoxelMesh } from "../../Meshes/DVEBRVoxelMesh";
 import { SectionMesh } from "@divinevoxel/vlox/Renderer";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 import {
@@ -15,7 +15,6 @@ import {
   CompactedMeshData,
 } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
 import { LocationData } from "@divinevoxel/vlox/Math";
-
 const min = Vector3.Zero();
 const max = new Vector3(16, 16, 16);
 const empty = new Float32Array(1);
@@ -23,7 +22,7 @@ const emptyIndice = new Uint16Array(1);
 const meshData = new CompactedMeshData();
 const location: LocationData = [0, 0, 0, 0];
 const found = new Set<string>();
-export class DVEBRSectionMeshes extends DVESectionMeshes {
+export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
   static meshCache: Mesh[] = [];
   pickable = false;
   checkCollisions = false;
@@ -60,7 +59,7 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
         }
       }
     }
-    DVEBRSectionMeshes.meshCache.push(mesh);
+    DVEBRSectionMeshesMultiBuffer.meshCache.push(mesh);
   }
 
   updateVertexData(section: SectionMesh, data: CompactedSectionVoxelMesh) {
@@ -76,7 +75,7 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
       if (section.meshes.has(subMeshMaterial)) {
         mesh = section.meshes.get(subMeshMaterial) as Mesh;
       } else {
-        if (!DVEBRSectionMeshes.meshCache.length) {
+        if (!DVEBRSectionMeshesMultiBuffer.meshCache.length) {
           const newMesh = new Mesh("", this.scene);
           newMesh.renderingGroupId = 1;
           newMesh.isPickable = false;
@@ -108,7 +107,7 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
           }
           mesh = newMesh;
         } else {
-          mesh = DVEBRSectionMeshes.meshCache.shift()!;
+          mesh = DVEBRSectionMeshesMultiBuffer.meshCache.shift()!;
           mesh.setEnabled(false);
         }
       }
@@ -118,19 +117,20 @@ export class DVEBRSectionMeshes extends DVESectionMeshes {
       mesh.computeWorldMatrix();
       if (mesh.metadata.buffer && mesh.metadata.buffer instanceof Buffer) {
         const buffer = mesh.metadata.buffer as Buffer;
-
         for (const bufferKind in mesh.getVerticesDataKinds()) {
           mesh.geometry!.removeVerticesData(bufferKind);
         }
         mesh.geometry!.releaseForMesh(mesh);
-        mesh.metadata.buffer.dispose();
+        buffer.dispose();
       }
+
       mesh.metadata.buffer = DVEBRVoxelMesh.UpdateVertexDataBuffers(
         mesh,
         this.engine,
         meshData.verticies,
         meshData.indices
       );
+
       const minBounds = meshData.minBounds;
       const maxBounds = meshData.maxBounds;
 

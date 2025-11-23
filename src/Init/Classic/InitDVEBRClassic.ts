@@ -107,10 +107,10 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
 
   const renderer = await CreateDefaultRenderer({
     progress,
-    afterCreate: async (scene) => {},
+    afterCreate: async () => {},
     createMaterial: (renderer, scene, matData) => {
       const newMat = new DVEBRClassicMaterial(
-        renderer.voxelScene.options,
+        renderer.sceneOptions,
         matData.id,
         {
           scene,
@@ -130,22 +130,22 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
     substances: initData.substances,
   });
 
-  renderer.voxelScene.options.shade.doSun = true;
-  renderer.voxelScene.options.shade.doRGB = true;
-  renderer.voxelScene.options.shade.doAO = true;
-  renderer.voxelScene.options.shade.doColor = true;
-  renderer.voxelScene.options.levels.baseLevel = 0.1;
-  renderer.voxelScene.options.levels.sunLevel = 1;
-  renderer.voxelScene.options.fog.setColor(255, 255, 255);
-  renderer.voxelScene.options.fog.heightFactor = 0.25;
-  renderer.voxelScene.options.sky.setColor(130, 174, 255);
-  renderer.voxelScene.options.sky.horizonStart = 0;
-  renderer.voxelScene.options.sky.horizon = 64;
-  renderer.voxelScene.options.sky.horizonEnd = 120;
-  renderer.voxelScene.options.sky.startBlend = 100;
-  renderer.voxelScene.options.sky.endBlend = 150;
+  renderer.sceneOptions.shade.doSun = true;
+  renderer.sceneOptions.shade.doRGB = true;
+  renderer.sceneOptions.shade.doAO = true;
+  renderer.sceneOptions.shade.doColor = true;
+  renderer.sceneOptions.levels.baseLevel = 0.1;
+  renderer.sceneOptions.levels.sunLevel = 1;
+  renderer.sceneOptions.fog.setColor(255, 255, 255);
+  renderer.sceneOptions.fog.heightFactor = 0.25;
+  renderer.sceneOptions.sky.setColor(130, 174, 255);
+  renderer.sceneOptions.sky.horizonStart = 0;
+  renderer.sceneOptions.sky.horizon = 64;
+  renderer.sceneOptions.sky.horizonEnd = 120;
+  renderer.sceneOptions.sky.startBlend = 100;
+  renderer.sceneOptions.sky.endBlend = 150;
 
-  renderer.voxelScene.options.ubo.buffer.update();
+  renderer.sceneOptions.ubo.buffer.update();
 
   progress.endTask();
   return renderer;
