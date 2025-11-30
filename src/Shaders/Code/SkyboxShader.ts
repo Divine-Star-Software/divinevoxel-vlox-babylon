@@ -38,7 +38,35 @@ void main(void) {
 } 
     `;
   }
+  static GetCustomFragment(main?: string, top?: string) {
+    return /* glsl */ `#version 300 es
+precision highp float;
+precision highp sampler2DArray;
 
+
+${SceneUBO.Define}
+//uniforms
+uniform vec3 cameraPosition;
+
+//varying
+in vec3 worldPOS;
+in float vDistance;
+
+
+//functions
+
+${SkyShaders.Functions}
+${NoiseShaders.FBMNoiseFunctions}
+${FogShaders.Functions}
+
+${top || ""}
+out vec4 FragColor;  
+void main(void) {
+
+${main || ""}
+} 
+`;
+  }
   static GetFragment() {
     return /* glsl */ `#version 300 es
 precision highp float;

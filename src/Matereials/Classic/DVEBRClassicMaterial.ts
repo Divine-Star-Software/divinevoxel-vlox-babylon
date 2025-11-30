@@ -80,21 +80,14 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
       shaderMaterial.backFaceCulling = data.backFaceCulling;
     }
 
-    let liquid = false;
 
     if (this.id.includes("transparent")) {
       shaderMaterial.forceDepthWrite = true;
       shaderMaterial.backFaceCulling = true;
     }
-    if (this.id.includes("flora")) {
-      shaderMaterial.alphaMode = Engine.ALPHA_COMBINE;
-      shaderMaterial.backFaceCulling = true;
-    }
-    if (this.id.includes("liquid")) {
-      liquid = true;
 
+    if (this.data.stencil) {
       shaderMaterial.forceDepthWrite = true;
-      shaderMaterial.backFaceCulling = false;
       this.scene.setRenderingAutoClearDepthStencil(0, false, false, false);
     }
     this._material = shaderMaterial;

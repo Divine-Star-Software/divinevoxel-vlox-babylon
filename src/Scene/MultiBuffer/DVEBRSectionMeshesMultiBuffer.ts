@@ -42,7 +42,7 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
   returnMesh(mesh: Mesh) {
     mesh.geometry?.clearCachedData();
 
-    for (const bufferKind in mesh.getVerticesDataKinds()) {
+    for (const bufferKind of mesh.getVerticesDataKinds()) {
       mesh.removeVerticesData(bufferKind);
     }
     if (mesh.metadata.buffer && mesh.metadata.buffer instanceof Buffer) {
@@ -117,11 +117,12 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
       mesh.computeWorldMatrix();
       if (mesh.metadata.buffer && mesh.metadata.buffer instanceof Buffer) {
         const buffer = mesh.metadata.buffer as Buffer;
-        for (const bufferKind in mesh.getVerticesDataKinds()) {
+        for (const bufferKind of mesh.getVerticesDataKinds()) {
           mesh.geometry!.removeVerticesData(bufferKind);
         }
         mesh.geometry!.releaseForMesh(mesh);
         buffer.dispose();
+
       }
 
       mesh.metadata.buffer = DVEBRVoxelMesh.UpdateVertexDataBuffers(

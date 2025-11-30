@@ -227,25 +227,31 @@ gl_Position = viewProjection * worldPosition;
     }
 
       vec4 rgb = texture(dve_voxel,vec3(vUV.xy,vUV.z));
-    
-/*     
-    vec4 oRGB1 =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.x));
-    vec4 oRGB2 =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.y));
-    vec4 oRGB3 =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.z));
-    vec4 oRGB4 =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.w));
-    if(oRGB1.a > 0.5) {
-        rgb = oRGB1;
-    }
-    if(oRGB2.a > 0.5) {
-        rgb = oRGB2;
-    }
-    if(oRGB3.a > 0.5) {
-        rgb = oRGB3;
-    }
-    if(oRGB4.a > 0.5) {
-        rgb = oRGB4;
-    }
-*/
+          
+      if(vOverlayTextureIndex.x > 0.){
+        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.x));
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
+      if(vOverlayTextureIndex.y > 0.){
+        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.y));
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
+      if(vOverlayTextureIndex.z > 0.){
+        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.z));
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
+      if(vOverlayTextureIndex.w > 0.){
+        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.w));
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
 
 ${
   doAO

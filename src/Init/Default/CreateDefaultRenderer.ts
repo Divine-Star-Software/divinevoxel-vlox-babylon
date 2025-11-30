@@ -16,6 +16,7 @@ import { ImageArrayTexture } from "../../Textures/ImageArrayTexture.js";
 import { CacheManager } from "@divinevoxel/vlox/Cache/CacheManager.js";
 import { MaterialInterface } from "../../Matereials/MaterialInterface.js";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress.js";
+import "@babylonjs/core/Animations/animatable";
 
 const defaultSubstances = [
   "dve_glow",
@@ -158,7 +159,8 @@ export async function CreateDefaultRenderer(
   }
 
   let time = 0;
-  scene.registerBeforeRender(() => {
+
+  scene.onBeforeRenderObservable.add((scene) => {
     if (scene.deltaTime === undefined) return;
     for (const [key, type] of TextureManager._compiledTextures) {
       if (type.animatedTexture.tick(scene.deltaTime)) {
@@ -171,6 +173,8 @@ export async function CreateDefaultRenderer(
     time += 0.1;
     renderer.sceneOptions.ubo.update();
   });
+  scene.registerBeforeRender(() => {});
+
 
   InitDefaultEffects();
   initData.afterCreate && (await initData.afterCreate());

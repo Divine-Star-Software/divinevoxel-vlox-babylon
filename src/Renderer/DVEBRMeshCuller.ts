@@ -8,6 +8,7 @@ const min = new Vector3();
 const max = new Vector3(16, 16, 16);
 const boundingBox = new BoundingBox(min, max);
 
+const addMeshes: Mesh[] = [];
 const removedMeshes: Mesh[] = [];
 function CullSectors(scene: Scene) {
   const camera = scene.activeCamera;
@@ -36,7 +37,7 @@ function CullSectors(scene: Scene) {
           if (camera.isInFrustum(mesh)) {
             if (!mesh.isEnabled()) {
               mesh.setEnabled(true);
-              scene.meshes.push(mesh);
+              addMeshes.push(mesh);
             }
           } else {
             if (mesh.isEnabled()) {
@@ -54,7 +55,14 @@ function CullSectors(scene: Scene) {
       scene.meshes.splice(i, 1);
     }
   }
+  for (const mesh of addMeshes) {
+    if (!scene.meshes.includes(mesh)) {
+      scene.meshes.push(mesh);
+    }
+  }
+  addMeshes.length = 0;
   removedMeshes.length = 0;
+
 }
 
 export class DVEBRMeshCuller {
