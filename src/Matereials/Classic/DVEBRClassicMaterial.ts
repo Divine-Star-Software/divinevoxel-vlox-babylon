@@ -1,16 +1,18 @@
-import { Engine } from "@babylonjs/core/Engines/engine";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Scene } from "@babylonjs/core/scene";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { Vector4 } from "@babylonjs/core/Maths/math.vector";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial.js";
-import { Matrix, Vector2, Vector3 } from "@babylonjs/core/Maths/";
 import { TextureManager } from "@divinevoxel/vlox/Textures/TextureManager.js";
 import { DVEBRShaderStore } from "../../Shaders/DVEBRShaderStore.js";
 import { ImageArrayTexture } from "../../Textures/ImageArrayTexture.js";
 import { MaterialData, MaterialInterface } from "../MaterialInterface.js";
 import { SceneOptions } from "../../Scene/SceneOptions.js";
-
+import {
+  Matrix,
+  Vector3,
+  Vector4,
+  Vector2,
+} from "@babylonjs/core/Maths/math.vector";
 type MatData = MaterialData<{
   textureTypeId: string;
   effectId: string;
@@ -62,24 +64,37 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
       );
     }
 
+    const uniforms: string[] = [...shaderData.uniforms];
+    if (!this.options.ubo.suppourtsUBO) {
+      uniforms.push(...this.options.ubo.allUniformsNames);
+    }
+
     const shaderMaterial = new ShaderMaterial(
       this.id,
       data.scene,
       this.id,
       {
-        ...shaderData,
+        attributes: shaderData.attributes,
+        uniforms,
         needAlphaBlending: data.alphaBlending,
         needAlphaTesting: data.alphaTesting,
-        uniformBuffers: ["SceneOptions"],
+        ...(this.options.ubo.suppourtsUBO
+          ? {
+              uniformBuffers: ["SceneOptions"],
+            }
+          : {}),
       },
       false
     );
-    shaderMaterial.setUniformBuffer("SceneOptions", this.options.ubo.buffer);
+
+    if (this.options.ubo.buffer) {
+      shaderMaterial.setUniformBuffer("SceneOptions", this.options.ubo.buffer);
+    }
 
     if (data.backFaceCulling !== undefined) {
       shaderMaterial.backFaceCulling = data.backFaceCulling;
     }
-    
+
     if (this.id.includes("dve_item")) {
       shaderMaterial.forceDepthWrite = true;
       shaderMaterial.backFaceCulling = true;
@@ -163,7 +178,9 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
         textures,
       },
     });
-    newMat.setUniformBuffer("SceneOptions", sceneOptions.ubo.buffer);
+    if (sceneOptions.ubo.buffer) {
+      newMat.setUniformBuffer("SceneOptions", sceneOptions.ubo.buffer);
+    }
     mat._material = newMat;
     mat.textures = textures;
     return mat;
@@ -192,5 +209,9 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
   }
   setMatrix<MatrixType = Matrix>(uniform: string, matrix: MatrixType): void {
     this._material.setMatrix(uniform, matrix as any);
+  }
+
+  syncUBO(force = false) {
+    this.options.ubo.syncToShaderMaterial(force, this._material);
   }
 }

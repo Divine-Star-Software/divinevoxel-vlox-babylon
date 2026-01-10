@@ -11,7 +11,10 @@ precision highp int;
 precision highp usampler2D; 
 precision highp sampler2DArray;
 
-${SceneUBO.Define}        
+${
+  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+}     
+    
 const uint lightMask = uint(0xf);
 const uint aoMask = uint(${0b11});
 const uint animMask = uint(${0b11});
@@ -291,7 +294,10 @@ precision highp int;
 precision highp usampler2D; 
 precision highp sampler2DArray;
 
-${SceneUBO.Define}
+${
+  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+}     
+
 //uniforms
 uniform vec3 cameraPosition;
 uniform sampler2DArray dve_voxel;

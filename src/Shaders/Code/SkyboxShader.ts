@@ -8,7 +8,10 @@ export class SkyboxShader {
     return /* glsl */ `#version 300 es
 precision highp float;
 
-${SceneUBO.Define}
+${
+  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+}     
+
 //uniforms
 uniform vec3 cameraPosition;
 uniform mat4 world;
@@ -44,7 +47,10 @@ precision highp float;
 precision highp sampler2DArray;
 
 
-${SceneUBO.Define}
+${
+  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+}     
+
 //uniforms
 uniform vec3 cameraPosition;
 
@@ -73,7 +79,10 @@ precision highp float;
 precision highp sampler2DArray;
 
 
-${SceneUBO.Define}
+${
+  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+}     
+
 //uniforms
 uniform vec3 cameraPosition;
 

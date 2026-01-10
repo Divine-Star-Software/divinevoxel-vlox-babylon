@@ -16,11 +16,17 @@ import { HDRCubeTexture } from "@babylonjs/core/Materials/Textures/hdrCubeTextur
 
 import { LevelParticles } from "./LevelParticles";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress";
+import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 export type DVEBRPBRData = DVEBRDefaultMaterialBaseData & {
   getProgress?: (progress: WorkItemProgress) => void;
 };
 
 export default function InitDVEPBR(initData: DVEBRPBRData) {
+  if (initData.textureSize) {
+    EngineSettings.settings.rendererSettings.textureSize = [
+      ...initData.textureSize,
+    ];
+  }
   const progress = new WorkItemProgress();
   if (initData.getProgress) initData.getProgress(progress);
   progress.startTask("Init PBR Renderer");
@@ -74,18 +80,14 @@ export default function InitDVEPBR(initData: DVEBRPBRData) {
   const renderer = CreateDefaultRenderer({
     progress,
     createMaterial: (renderer, scene, matData) => {
-      const newMat = new DVEBRPBRMaterial(
-        renderer.sceneOptions,
-        matData.id,
-        {
-          scene,
-          data: {
-            effectId: matData.shaderId,
-            textureTypeId: matData.textureTypeId || "",
-          },
-          ...matData,
-        }
-      );
+      const newMat = new DVEBRPBRMaterial(renderer.sceneOptions, matData.id, {
+        scene,
+        data: {
+          effectId: matData.shaderId,
+          textureTypeId: matData.textureTypeId || "",
+        },
+        ...matData,
+      });
       newMat.createMaterial(scene);
       return newMat;
     },

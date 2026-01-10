@@ -9,6 +9,8 @@ import {
   CreateTextures,
 } from "../Default/CreateDefaultRenderer";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress";
+import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
+import { SceneUBO } from "../../Scene/SceneUBO";
 export type DVEBRClassicData = DVEBRDefaultMaterialBaseData & {
   doSun?: boolean;
   doRGB?: boolean;
@@ -26,11 +28,18 @@ const defaultMaterials = [
 ];
 
 export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
+  if (initData.textureSize) {
+    EngineSettings.settings.rendererSettings.textureSize = [
+      ...initData.textureSize,
+    ];
+  }
   const progress = new WorkItemProgress();
   if (initData.getProgress) initData.getProgress(progress);
   progress.startTask("Init Classic Renderer");
   await CreateTextures(initData.scene, initData.textureData, progress);
 
+  const engine = initData.scene.getEngine();
+  SceneUBO.UniformBufferSuppourted = engine.supportsUniformBuffers;
   //items
   DVEBRShaderStore.setShaderData(
     "dve_item",
@@ -87,6 +96,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
       ],
       ["position", "normal", "voxelData", "textureIndex", "uv", "colors"]
     );
+
     DVEBRShaderStore.storeShader(
       material,
       "vertex",
@@ -145,7 +155,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   renderer.sceneOptions.sky.startBlend = 100;
   renderer.sceneOptions.sky.endBlend = 150;
 
-  renderer.sceneOptions.ubo.buffer.update();
+  renderer.sceneOptions.ubo.buffer?.update();
 
   progress.endTask();
   return renderer;

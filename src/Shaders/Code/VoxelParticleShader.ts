@@ -18,7 +18,7 @@ uniform int dve_voxel_animation_size;
 uniform mat4 world;
 uniform mat4 viewProjection;
 
-${SceneUBO.Define}     
+${SceneUBO.UniformBufferSuppourted ? SceneUBO.Define: SceneUBO.BaseDefine}     
 const float lightGradient[16] = float[16](
 0.08, 0.12, 0.16, 0.21, 0.27, 0.34, 0.42, 0.5, 0.59, 0.68, 0.77, 0.85, 0.91, 0.96, 0.99, 1.
 );

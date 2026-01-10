@@ -11,9 +11,10 @@ precision highp int;
 precision highp usampler2D; 
 precision highp sampler2DArray;
 
-${SceneUBO.Define}        
-
-
+${
+  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+}     
+     
 //texture animations
 uniform sampler2DArray dve_item;
 uniform usampler2D dve_item_animation; 
@@ -104,7 +105,10 @@ precision highp int;
 precision highp usampler2D; 
 precision highp sampler2DArray;
 
-${SceneUBO.Define}
+${
+  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+}     
+
 //uniforms
 uniform vec3 cameraPosition;
 uniform sampler2DArray dve_item;

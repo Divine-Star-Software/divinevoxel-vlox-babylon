@@ -206,4 +206,8 @@ export class DVEBRPBRMaterial implements MaterialInterface {
     if (!this.plugin.uniformBuffer) return;
     this.plugin.uniformBuffer.updateMatrix(uniform, matrix as IMatrixLike);
   }
+
+  syncUBO(): void {
+    
+  }
 }

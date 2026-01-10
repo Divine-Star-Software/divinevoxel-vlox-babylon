@@ -3,8 +3,8 @@ import { CreateSphere } from "@babylonjs/core/Meshes/Builders/sphereBuilder";
 import { SkyboxShader } from "../../Shaders/Code/SkyboxShader";
 import { DVEBRShaderStore } from "../../Shaders/DVEBRShaderStore";
 import { DVEBabylonRenderer } from "Renderer/DVEBabylonRenderer";
-
 export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
+  const sceneOptions = renderer.sceneOptions;
   DVEBRShaderStore.storeShader(
     "dve_skybox",
     "vertex",
@@ -17,14 +17,27 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
     SkyboxShader.GetFragment()
   );
 
+  const uniforms: string[] = [
+    "world",
+    "viewProjection",
+    "worldOrigin",
+    "cameraPosition",
+  ];
+  if (!sceneOptions.ubo.suppourtsUBO) {
+    uniforms.push(...sceneOptions.ubo.allUniformsNames);
+  }
   const skyboxMat = new ShaderMaterial(
     "skybox",
     renderer.scene,
     "dve_skybox",
     {
-      uniforms: ["world", "viewProjection", "worldOrigin", "cameraPosition"],
+      uniforms,
       attributes: ["position", "normal"],
-      uniformBuffers: ["SceneOptions"],
+      ...(sceneOptions.ubo.suppourtsUBO
+        ? {
+            uniformBuffers: ["SceneOptions"],
+          }
+        : {}),
       needAlphaBlending: false,
       needAlphaTesting: false,
     },
@@ -34,7 +47,11 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
   const renderDistance = 250;
   const skybox = CreateSphere(
     "skyBox",
-    { diameterX: renderDistance, diameterZ: renderDistance, diameterY: renderDistance },
+    {
+      diameterX: renderDistance,
+      diameterZ: renderDistance,
+      diameterY: renderDistance,
+    },
     renderer.scene
   );
   skybox.renderingGroupId = 0;
@@ -43,9 +60,15 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
   skyboxMat.backFaceCulling = true;
   skybox.material = skyboxMat;
   skyboxMat.disableDepthWrite = true;
-  skyboxMat.setUniformBuffer(
-    "SceneOptions",
-    renderer.sceneOptions.ubo.buffer
-  );
+
+  if (sceneOptions.ubo.buffer) {
+    skyboxMat.setUniformBuffer("SceneOptions", sceneOptions.ubo.buffer);
+  } else {
+    sceneOptions.ubo.syncToShaderMaterial(true, skyboxMat);
+    sceneOptions.ubo.observers.beforeSync.add(() => {
+      sceneOptions.ubo.syncToShaderMaterial(false, skyboxMat);
+    });
+  }
+
   return skybox;
 }

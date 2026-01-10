@@ -17,6 +17,8 @@ import { CacheManager } from "@divinevoxel/vlox/Cache/CacheManager.js";
 import { MaterialInterface } from "../../Matereials/MaterialInterface.js";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress.js";
 import "@babylonjs/core/Animations/animatable";
+import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings.js";
+import { SceneUBO } from "../../Scene/SceneUBO.js";
 
 const defaultSubstances = [
   "dve_glow",
@@ -42,6 +44,7 @@ export async function CreateTextures(
   await TextureManager.compiledTextures(
     {
       createCache: CacheManager.cacheStoreEnabled,
+      finalSize: EngineSettings.settings.rendererSettings.textureSize,
     },
     progress
   );
@@ -151,15 +154,16 @@ export async function CreateDefaultRenderer(
     }
   );
 
+  const mats: MaterialInterface[] = [];
+
   for (const mat of materials) {
-    renderer.materials.register(
-      mat.id,
-      initData.createMaterial(renderer, scene, mat)
-    );
+    const newMat = initData.createMaterial(renderer, scene, mat);
+    renderer.materials.register(mat.id, newMat);
+    mats.push(newMat);
   }
 
+  const needUBOSync = !SceneUBO.UniformBufferSuppourted;
   let time = 0;
-
   scene.onBeforeRenderObservable.add((scene) => {
     if (scene.deltaTime === undefined) return;
     for (const [key, type] of TextureManager._compiledTextures) {
@@ -171,10 +175,16 @@ export async function CreateDefaultRenderer(
     }
     renderer.sceneOptions.ubo.updateTime(time);
     time += 0.1;
-    renderer.sceneOptions.ubo.update();
+    if (needUBOSync) {
+      renderer.sceneOptions.ubo.observers.beforeSync.notifyObservers(null);
+      for (const mat of mats) {
+        mat.syncUBO();
+      }
+      renderer.sceneOptions.ubo._clearDirtyUniforms();
+    } else {
+      renderer.sceneOptions.ubo.update();
+    }
   });
-  scene.registerBeforeRender(() => {});
-
 
   InitDefaultEffects();
   initData.afterCreate && (await initData.afterCreate());

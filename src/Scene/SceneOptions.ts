@@ -1,7 +1,6 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Scene } from "@babylonjs/core/scene";
 import { SceneUBO } from "./SceneUBO";
-const tmepColor = new Color3();
 class UBOColor3 {
   constructor(
     private _color: Color3,
@@ -11,11 +10,19 @@ class UBOColor3 {
   _update() {
     this.ubo._isDirty = true;
 
-    tmepColor.copyFrom(this._color);
-    if (tmepColor.r > 1) tmepColor.r /= 255;
-    if (tmepColor.g > 1) tmepColor.g /= 255;
-    if (tmepColor.b > 1) tmepColor.b /= 255;
-    this.ubo.buffer.updateColor3(this.propertyId, tmepColor);
+    if (this._color.r > 1) this._color.r /= 255;
+    if (this._color.g > 1) this._color.g /= 255;
+    if (this._color.b > 1) this._color.b /= 255;
+    if (this.ubo.buffer) {
+      this.ubo.buffer.updateColor3(this.propertyId, this._color);
+    } else {
+      (this.ubo.uniforms.get(this.propertyId) as Color3).set(
+        this._color.r,
+        this._color.g,
+        this._color.b
+      );
+      this.ubo.dirtyUniforms.set(this.propertyId, true);
+    }
   }
   get r() {
     return this._color.r;
@@ -264,10 +271,7 @@ export class SceneOptions {
   effects: EffectOptions;
   ubo: SceneUBO;
 
-  constructor(
-    public scene: Scene,
-    postponeUBOCreation = false
-  ) {
+  constructor(public scene: Scene, postponeUBOCreation = false) {
     if (!postponeUBOCreation) {
       this.ubo = new SceneUBO(SceneUBO.Create(scene));
     }

@@ -40,4 +40,6 @@ export interface MaterialInterface<
   setVector3(uniform: string, x: number, y: number, z: number): void;
   setVector4(uniform: string, x: number, y: number, z: number, w: number): void;
   setMatrix<MatrixType = Matrix>(uniform: string, matrix: MatrixType): void;
+  /**If UBO are not suppourted used to sync all uniforms to the material. */
+  syncUBO(forece?:boolean) : void;
 }
