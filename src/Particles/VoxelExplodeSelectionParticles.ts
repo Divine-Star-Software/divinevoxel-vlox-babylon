@@ -13,7 +13,7 @@ import { DataCursorInterface } from "@divinevoxel/vlox/Voxels/Cursor/DataCursor.
 import { GetXYZOrderArrayIndex } from "@divinevoxel/vlox/Math/Indexing";
 import { IVoxelSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelSelection";
 import { VoxelPropertiesRegister } from "@divinevoxel/vlox/Voxels/Data/VoxelPropertiesRegister";
-import { SchemaRegister } from "@divinevoxel/vlox/Voxels/State/SchemaRegister";
+import { VoxelSchemas } from "@divinevoxel/vlox/Voxels/State/VoxelSchemas";
 export class VoxelExplodeSelectionParticles {
   static CreateParticleData(
     iSelection: IVoxelSelection,
@@ -46,8 +46,9 @@ export class VoxelExplodeSelectionParticles {
           const voxel = cursor.getVoxel(x, y, z);
           if (!voxel || voxel.isAir()) continue;
 
-          const modState = SchemaRegister.getVoxelSchemas(voxel.getStringId())
-            .mod.startEncoding(voxel.getMod())
+          const modSchema = VoxelSchemas.mod.get(voxel.getStringId())!;
+          const modState = modSchema
+            .startEncoding(voxel.getMod())
             .toStateString();
           textures[index] =
             VoxelPropertiesRegister.VoxelProperties[voxel.getVoxelId()][

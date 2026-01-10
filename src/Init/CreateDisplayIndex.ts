@@ -8,7 +8,7 @@ import {
   PaintVoxelData,
 } from "@divinevoxel/vlox/Voxels/";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
-import { SchemaRegister } from "@divinevoxel/vlox/Voxels/State/SchemaRegister";
+import { VoxelSchemas } from "@divinevoxel/vlox/Voxels/State/VoxelSchemas";
 import { TextureManager } from "@divinevoxel/vlox/Textures/TextureManager";
 import { VoxelIndex } from "@divinevoxel/vlox/Voxels/Indexes/VoxelIndex";
 import { VoxelModelIndex } from "@divinevoxel/vlox/Voxels/Indexes/VoxelModelIndex";
@@ -159,14 +159,15 @@ export default async function CreateDisplayIndex(
       addVoxelData.state = 0;
       addVoxelData.mod = 0;
       if (state.data.display.type == "model") {
-        const voxelSchema = SchemaRegister.getVoxelSchemas(voxelId);
-        if (state.data.display.state) {
-          addVoxelData.state = voxelSchema.state.readString(
+        const stateSchema = VoxelSchemas.getStateSchema(voxelId);
+        if (state.data.display.state && stateSchema) {
+          addVoxelData.state = stateSchema.readString(
             state.data.display.state
           );
         }
-        if (state.data.display.mod) {
-          addVoxelData.mod = voxelSchema.mod.readString(state.data.display.mod);
+        const modSchema = VoxelSchemas.mod.get(voxelId);
+        if (state.data.display.mod && modSchema) {
+          addVoxelData.mod = modSchema.readString(state.data.display.mod);
         }
 
         const rawData = VoxelCursor.VoxelDataToRaw(addVoxelData);

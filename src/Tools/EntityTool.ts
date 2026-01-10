@@ -5,6 +5,7 @@ import "@babylonjs/core/Meshes/thinInstanceMesh";
 const identity = Matrix.Identity();
 export class EntityTool {
   _instanceAmount = 0;
+  _visibleArray: Uint8Array;
   _positionArray: Float32Array;
   _rotationArray: Float32Array;
   _scaleArray: Float32Array;
@@ -21,6 +22,7 @@ export class EntityTool {
 
   setInstanceAmount(amount: number) {
     this._matrixArray = new Float32Array(amount * 16);
+    this._visibleArray = new Uint8Array(amount);
     this._positionArray = new Float32Array(amount * 3);
     this._rotationArray = new Float32Array(amount * 3);
     this._scaleArray = new Float32Array(amount * 3);
@@ -37,8 +39,8 @@ export class EntityTool {
   getInstance() {
     const instance = this._instances.shift();
     if (!instance) return false;
-    instance.updateMatrix(identity);
-
+    this._visibleArray[instance.index] = 1;
+    instance.setData(0, 0, 0, 1, 1, 1, 0, 0, 0);
     this._usedInstances.add(instance);
     return instance;
   }

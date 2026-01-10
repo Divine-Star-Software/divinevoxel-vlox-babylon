@@ -79,7 +79,11 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
     if (data.backFaceCulling !== undefined) {
       shaderMaterial.backFaceCulling = data.backFaceCulling;
     }
-
+    
+    if (this.id.includes("dve_item")) {
+      shaderMaterial.forceDepthWrite = true;
+      shaderMaterial.backFaceCulling = true;
+    }
 
     if (this.id.includes("transparent")) {
       shaderMaterial.forceDepthWrite = true;

@@ -13,10 +13,10 @@ export class ImageArrayTexture extends Texture {
   constructor(
     public imgs: HTMLImageElement[] | null,
     public scene: Scene,
-    public useCustomMipmaps: boolean = true // off by default
+    public useCustomMipmaps: boolean = true
   ) {
     super(null, scene);
-    // fire and forget; Babylon will use isReady flag
+
     void this.init();
   }
 
@@ -35,7 +35,6 @@ export class ImageArrayTexture extends Texture {
     const widths: number[] = [];
     const heights: number[] = [];
 
-    // level 0 from the image (already 256×256 after your pipeline)
     const canvas = document.createElement("canvas");
     canvas.width = baseWidth;
     canvas.height = baseHeight;
@@ -45,14 +44,12 @@ export class ImageArrayTexture extends Texture {
 
     let currentWidth = baseWidth;
     let currentHeight = baseHeight;
-    let currentData = ctx.getImageData(0, 0, baseWidth, baseHeight)
-      .data as any;
+    let currentData = ctx.getImageData(0, 0, baseWidth, baseHeight).data as any;
 
     levels.push(new Uint8Array(currentData));
     widths.push(currentWidth);
     heights.push(currentHeight);
 
-    // build lower mips
     for (let level = 1; level < mipCount; level++) {
       const nextWidth = Math.max(1, currentWidth >> 1);
       const nextHeight = Math.max(1, currentHeight >> 1);
@@ -78,7 +75,7 @@ export class ImageArrayTexture extends Texture {
               const r = currentData[si];
               const g = currentData[si + 1];
               const b = currentData[si + 2];
-              const a = currentData[si + 3]; // 0–255
+              const a = currentData[si + 3];
 
               if (a > 0) {
                 if (a > maxA) maxA = a;
@@ -141,7 +138,6 @@ export class ImageArrayTexture extends Texture {
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-    // allocate full mip chain (works for both custom + auto mipmaps)
     gl.texStorage3D(
       gl.TEXTURE_2D_ARRAY,
       mipCount,
@@ -152,7 +148,6 @@ export class ImageArrayTexture extends Texture {
     );
 
     if (this.useCustomMipmaps) {
-      // ---- custom mip chain, original behavior ----
       for (let layer = 0; layer < layers; layer++) {
         const img = imgs[layer];
 
@@ -178,14 +173,9 @@ export class ImageArrayTexture extends Texture {
           );
         }
       }
-      // no auto-mipmap; we've supplied them all
-      // gl.generateMipmap(gl.TEXTURE_2D_ARRAY); // not needed
     } else {
-      // ---- default GPU-generated mipmaps ----
       for (let layer = 0; layer < layers; layer++) {
         const img = imgs[layer];
-
-        // Upload base level only; WebGL will generate the rest
         gl.texSubImage3D(
           gl.TEXTURE_2D_ARRAY,
           0,
@@ -200,23 +190,37 @@ export class ImageArrayTexture extends Texture {
           img
         );
       }
-
-      // let the driver generate mips
       gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
     }
 
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(
       gl.TEXTURE_2D_ARRAY,
       gl.TEXTURE_MIN_FILTER,
-      gl.NEAREST_MIPMAP_NEAREST
+      gl.LINEAR_MIPMAP_LINEAR
     );
-    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    const anisotropicEnabled =
+      gl.getExtension("EXT_texture_filter_anisotropic") ||
+      gl.getExtension("MOZ_EXT_texture_filter_anisotropic") ||
+      gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+
+    if (anisotropicEnabled) {
+      const maxAniso = gl.getParameter(
+        anisotropicEnabled.MAX_TEXTURE_MAX_ANISOTROPY_EXT
+      ) as number;
+      const desired = Math.min(8, maxAniso);
+
+      gl.texParameterf(
+        gl.TEXTURE_2D_ARRAY,
+        anisotropicEnabled.TEXTURE_MAX_ANISOTROPY_EXT,
+        desired
+      );
+    }
 
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
 
-    // hook into Babylon
     const itex = new InternalTexture(
       scene.getEngine(),
       InternalTextureSource.Unknown
@@ -224,10 +228,10 @@ export class ImageArrayTexture extends Texture {
     itex.width = width;
     itex.height = height;
     itex.isReady = true;
-    itex.generateMipMaps = true; // there IS a mip chain (custom or GPU-generated)
+    itex.generateMipMaps = true;
     itex.type = Engine.TEXTURETYPE_UNSIGNED_BYTE;
     itex.is2DArray = true;
-    itex._premulAlpha = false; // straight alpha data
+    itex._premulAlpha = false;
     this.hasAlpha = true;
 
     itex._hardwareTexture = {
@@ -248,7 +252,6 @@ export class ImageArrayTexture extends Texture {
 
     this._texture = itex;
 
-    // keeps your existing sampler intent (nearest with per-mip choice)
     this.updateSamplingMode(Texture.NEAREST_NEAREST_MIPNEAREST);
   }
 

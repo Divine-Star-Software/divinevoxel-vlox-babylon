@@ -6,7 +6,7 @@ import { SubMesh } from "@babylonjs/core/Meshes/subMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CompactedMeshData } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
-import { VoxelPalettesRegister } from "@divinevoxel/vlox/Voxels/Data/VoxelPalettesRegister";
+import { VoxelLUT } from "@divinevoxel/vlox/Voxels/Data/VoxelLUT";
 import { BufferAllocation, BufferMesh } from "./Meshes/BufferMesh";
 import { SubBufferMesh } from "./Meshes/SubBufferMesh";
 import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshVertexStructCursor";
@@ -25,9 +25,9 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
   active = new Map<SubMesh, SubBufferMesh>();
   init(scene: Scene) {
     const multiMaterial = new MultiMaterial("Voxel Scene Material", scene);
-    for (let i = 0; i < VoxelPalettesRegister.material._palette.length; i++) {
+    for (let i = 0; i < VoxelLUT.material._palette.length; i++) {
       multiMaterial.subMaterials.push(
-        this.renderer.materials.get(VoxelPalettesRegister.material._palette[i])!
+        this.renderer.materials.get(VoxelLUT.material._palette[i])!
           ._material
       );
     }
