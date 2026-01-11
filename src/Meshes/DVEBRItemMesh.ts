@@ -3,7 +3,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 import { Buffer, VertexBuffer } from "@babylonjs/core/Meshes/buffer.js";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { CompactSubMesh } from "@divinevoxel/vlox/Mesher/Types/Mesher.types";
-import { ItemMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Items/Geomtry/ItemMeshVertexStructCursor";
+import { ItemMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Items/Geometry/ItemMeshVertexStructCursor";
 import { Scene } from "@babylonjs/core/scene";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
 export class DVEBRItemMesh {

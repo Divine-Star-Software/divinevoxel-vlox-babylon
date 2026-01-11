@@ -8,7 +8,7 @@ import { VoxelControls } from "./VoxelControls";
 import { Distance3D, Vec3Array, Vector3Like } from "@amodx/math";
 import "@babylonjs/core/Meshes/instancedMesh";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
-import { BoundingBox } from "@amodx/math/Geomtry/Bounds/BoundingBox";
+import { BoundingBox } from "@amodx/math/Geometry/Bounds/BoundingBox";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { RayProvider } from "@divinevoxel/vlox/Builder/RayProvider";
 import { VoxelSelectionHighlight } from "./VoxelSelectionHighlight";

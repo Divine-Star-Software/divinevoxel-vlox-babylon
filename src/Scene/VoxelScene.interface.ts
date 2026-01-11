@@ -3,7 +3,7 @@ import { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
 import { Scene } from "@babylonjs/core/scene";
 import { SubMesh } from "@babylonjs/core/Meshes/subMesh";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { CompactedMeshData } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
+import { CompactedMeshData } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/CompactedSectionVoxelMesh";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
 import { SceneOptions } from "./SceneOptions";
 

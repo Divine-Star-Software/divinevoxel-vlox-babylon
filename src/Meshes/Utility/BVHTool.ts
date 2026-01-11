@@ -2,12 +2,12 @@ import type { Scene } from "@babylonjs/core/scene";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { VoxelMeshBVHStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshBVHStructCursor";
-import { VoxelMeshBVHBuilder } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshBVHBuilder";
+import { VoxelMeshBVHStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/VoxelMeshBVHStructCursor";
+import { VoxelMeshBVHBuilder } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/VoxelMeshBVHBuilder";
 import { Vector2, Vector3, Vector4 } from "@babylonjs/core/Maths/";
 import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 
-import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshVertexStructCursor";
+import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/VoxelMeshVertexStructCursor";
 
 const vertexCursor = new VoxelMeshVertexStructCursor();
 const v1Position = new Vector3();
@@ -307,7 +307,7 @@ function VoxelMeshIntersect(
     // Check if current node is a leaf
     if (currentNode.nodeType == 2.0) {
       // Found a leaf node check against actual triangles
-      let geomtryResult = VoxelGeometryIntersect(
+      let geometryResult = VoxelGeometryIntersect(
         ro,
         rd,
         currentNodeIndex - VOXEL_NODE_INDEX,
@@ -315,10 +315,10 @@ function VoxelMeshIntersect(
         mesh_verterices,
         mesh_indices
       );
-      if (geomtryResult.hit) {
+      if (geometryResult.hit) {
         intersectResult.found = true;
         intersectResult.t = currentNodeT;
-        intersectResult.triangle = geomtryResult;
+        intersectResult.triangle = geometryResult;
         break;
       } else {
         // If stack is empty, break

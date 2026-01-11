@@ -9,7 +9,7 @@ import { SectionMesh } from "@divinevoxel/vlox/Renderer";
 import {
   CompactedSectionVoxelMesh,
   CompactedMeshData,
-} from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
+} from "@divinevoxel/vlox/Mesher/Voxels/Geometry/CompactedSectionVoxelMesh";
 import { LocationData } from "@divinevoxel/vlox/Math";
 import { SubBufferMesh } from "./Meshes/SubBufferMesh";
 import { SingleBufferVoxelScene } from "./SingleBufferVoxelScene";

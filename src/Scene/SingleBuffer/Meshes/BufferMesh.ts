@@ -9,7 +9,7 @@ import { SubMesh } from "@babylonjs/core/Meshes/subMesh";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 //https://playground.babylonjs.com/#SF6VE4
-import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/VoxelMeshVertexStructCursor";
+import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/VoxelMeshVertexStructCursor";
 import { SingleBufferVoxelScene } from "../SingleBufferVoxelScene";
 import { BufferAllocator } from "./BufferAllocator";
 import { nextPowerOf2 } from "@divinevoxel/vlox/Util/Binary/BinaryFunctions";

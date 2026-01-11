@@ -13,7 +13,7 @@ import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 import {
   CompactedSectionVoxelMesh,
   CompactedMeshData,
-} from "@divinevoxel/vlox/Mesher/Voxels/Geomtry/CompactedSectionVoxelMesh";
+} from "@divinevoxel/vlox/Mesher/Voxels/Geometry/CompactedSectionVoxelMesh";
 import { LocationData } from "@divinevoxel/vlox/Math";
 const min = Vector3.Zero();
 const max = new Vector3(16, 16, 16);
