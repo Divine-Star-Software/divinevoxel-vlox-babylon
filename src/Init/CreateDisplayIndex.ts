@@ -1,7 +1,7 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene } from "@babylonjs/core/scene";
 import { MeshVoxel } from "@divinevoxel/vlox/Mesher/Voxels/MeshVoxel";
-import { VoxelCursor } from "@divinevoxel/vlox//Voxels/Cursor/VoxelCursor";
+import { VoxelCursor } from "@divinevoxel/vlox/Voxels/Cursor/VoxelCursor";
 import {
   VoxelData,
   RawVoxelData,
