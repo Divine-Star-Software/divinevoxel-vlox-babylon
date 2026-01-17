@@ -144,7 +144,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   renderer.sceneOptions.shade.doRGB = true;
   renderer.sceneOptions.shade.doAO = true;
   renderer.sceneOptions.shade.doColor = true;
-  renderer.sceneOptions.levels.baseLevel = 0.1;
+  renderer.sceneOptions.levels.baseLevel = .2;
   renderer.sceneOptions.levels.sunLevel = 1;
   renderer.sceneOptions.fog.setColor(255, 255, 255);
   renderer.sceneOptions.fog.heightFactor = 0.25;

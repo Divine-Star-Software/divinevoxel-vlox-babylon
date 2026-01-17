@@ -161,7 +161,6 @@ export async function CreateDefaultRenderer(
     renderer.materials.register(mat.id, newMat);
     mats.push(newMat);
   }
-
   const needUBOSync = !SceneUBO.UniformBufferSuppourted;
   let time = 0;
   scene.onBeforeRenderObservable.add((scene) => {
