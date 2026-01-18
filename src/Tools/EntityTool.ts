@@ -2,12 +2,12 @@ import { Matrix } from "@babylonjs/core/Maths/math.vector.js";
 import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 import { EntityInstance } from "./EntityInstance.js";
 import "@babylonjs/core/Meshes/thinInstanceMesh";
-const identity = Matrix.Identity();
 export class EntityTool {
   _instanceAmount = 0;
   _visibleArray: Uint8Array;
   _positionArray: Float32Array;
   _rotationArray: Float32Array;
+  _pivotArray: Float32Array;
   _scaleArray: Float32Array;
   _matrixArray: Float32Array;
   _instances: EntityInstance[] = [];
@@ -24,6 +24,7 @@ export class EntityTool {
     this._matrixArray = new Float32Array(amount * 16);
     this._visibleArray = new Uint8Array(amount);
     this._positionArray = new Float32Array(amount * 3);
+    this._pivotArray = new Float32Array(amount * 3);
     this._rotationArray = new Float32Array(amount * 3);
     this._scaleArray = new Float32Array(amount * 3);
     this.addBuffer("matrix", this._matrixArray, 16);

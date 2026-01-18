@@ -131,6 +131,11 @@ out vec4 FragColor;
 void main(void) {
   
     vec4 rgb = texture(dve_item,vec3(vUV.xy,vUV.z)) * vBrightness;
+    if (rgb.a < 0.1) { 
+      discard;
+      return;
+    }
+
     vec3 fog = getFogColor();
     vec3 sky = getSkyColor(fog);
     vec4 skyBlendColor = blendSkyColor(sky, rgb);

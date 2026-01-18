@@ -142,8 +142,8 @@ export async function CreateDefaultRenderer(
       id: "dve_item",
       shaderId: "dve_item",
       textureTypeId: "dve_item",
-      alphaBlending: true,
-      alphaTesting: false,
+      alphaBlending: false,
+      alphaTesting: true,
     },
     {
       id: "dve_voxel_particle",

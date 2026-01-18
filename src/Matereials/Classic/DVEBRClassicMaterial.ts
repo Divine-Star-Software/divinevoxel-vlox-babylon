@@ -27,7 +27,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
   constructor(
     public options: SceneOptions,
     public id: string,
-    public data: MatData
+    public data: MatData,
   ) {}
 
   createMaterial(scene: Scene) {
@@ -46,12 +46,12 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
     let animationTexture;
     if (data.data.textureTypeId) {
       texture = TextureManager.getTexture(
-        data.data.textureTypeId ? data.data.textureTypeId : this.id
+        data.data.textureTypeId ? data.data.textureTypeId : this.id,
       );
 
       if (!texture && data.data.textureTypeId) {
         throw new Error(
-          `Could find the texture type for material ${this.id}. Texture typeid:  ${data.data.textureTypeId}`
+          `Could find the texture type for material ${this.id}. Texture typeid:  ${data.data.textureTypeId}`,
         );
       }
       animationTexture = texture.animatedTexture;
@@ -60,7 +60,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
     const shaderData = DVEBRShaderStore.getShaderData(this.data.data.effectId);
     if (!shaderData) {
       throw new Error(
-        `Could not find shader data for ${this.data.data.effectId}`
+        `Could not find shader data for ${this.data.data.effectId}`,
       );
     }
 
@@ -84,7 +84,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
             }
           : {}),
       },
-      false
+      false,
     );
 
     if (this.options.ubo.buffer) {
@@ -96,7 +96,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
     }
 
     if (this.id.includes("dve_item")) {
-      shaderMaterial.forceDepthWrite = true;
+     // shaderMaterial.forceDepthWrite = true;
       shaderMaterial.backFaceCulling = true;
     }
 
@@ -116,12 +116,12 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
 
       this.setTexture(
         `${texture.id}_animation`,
-        animationTexture!.shaderTexture
+        animationTexture!.shaderTexture,
       );
 
       this._material.setInt(
         `${texture.id}_animation_size`,
-        animationTexture!._size
+        animationTexture!._size,
       );
     }
 
@@ -162,7 +162,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
           false,
           false,
           Texture.NEAREST_NEAREST,
-          texture.textureType
+          texture.textureType,
         );
         textures.set(textId, newTexture);
         newMat.setTexture(textId, newTexture!);
@@ -203,7 +203,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
     x: number,
     y: number,
     z: number,
-    w: number
+    w: number,
   ): void {
     this._material.setVector4(uniform, new Vector4(x, y, z, w));
   }
