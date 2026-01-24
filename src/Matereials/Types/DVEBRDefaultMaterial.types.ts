@@ -18,6 +18,7 @@ export type NodeMaterialOptions = {
   hasEffects?: boolean;
   backFaceCulling?: boolean;
   stencil?: boolean;
+  forceDepthWrite?:boolean;
 };
 
 export type NodeMeshData = {

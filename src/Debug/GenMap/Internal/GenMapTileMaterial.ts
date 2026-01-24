@@ -5,8 +5,7 @@ import { Scene } from "@babylonjs/core/scene";
 export class GenMapTileMaterial {
   static Code = {
     Vertex: {
-      GLSL: /* glsl  */ `
-#version 300 es
+      GLSL: /* glsl  */ `#version 300 es
 precision highp float;
 in vec3 position;
 in vec2 uv;

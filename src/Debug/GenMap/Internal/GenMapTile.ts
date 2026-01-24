@@ -43,7 +43,7 @@ export class GenMapTile {
     if (!this._sector) {
       const sector = WorldRegister.sectors.get(
         this.dimensonId,
-        ...this.position
+        this.position[0],this.position[1],this.position[2]
       );
       if (!sector) {
         this.setColor(0.0, 0.0, 0.0, 1.0);
@@ -106,6 +106,7 @@ export class GenMapTile {
     this.worldMap._colorBuffer[index + 2] = b;
     this.worldMap._colorBuffer[index + 3] = a;
   }
+  
   dispose() {
     this._sector = null;
     this._dispoed = true;

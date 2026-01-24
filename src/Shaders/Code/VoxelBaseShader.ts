@@ -4,17 +4,24 @@ import { SceneUBO } from "../../Scene/SceneUBO";
 import { SkyShaders } from "./Shared/SkyShader";
 
 export class VoxelBaseShader {
-  static GetVertex(props: { doAO: boolean }) {
+  static GetVertex(props: {
+    doAO: boolean;
+    top?: string;
+    uniforms?: string;
+    attributes?: string;
+    instanceAttributes?: string;
+    functions?: string;
+    varying?: string;
+    inMainBefore?: string;
+    inMainAfter?: string;
+  }) {
     return /* glsl */ `#version 300 es
 precision highp float;
 precision highp int;
 precision highp usampler2D; 
 precision highp sampler2DArray;
+${props.top || ""}
 
-${
-  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
-}     
-    
 const uint lightMask = uint(0xf);
 const uint aoMask = uint(${0b11});
 const uint animMask = uint(${0b11});
@@ -46,11 +53,14 @@ uniform usampler2D dve_voxel_animation;
 uniform int dve_voxel_animation_size;
 
 //uniforms
+${SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine}     
+
 uniform mat4 world;
 uniform mat4 viewProjection;
 uniform vec3 worldOrigin;
 uniform vec3 cameraPosition;
 
+${props.uniforms || ""}
 
 //attributes
 in vec3 position;
@@ -59,6 +69,20 @@ in vec3 textureIndex;
 in vec2 uv;
 in vec3 colors;
 in vec4 voxelData;
+${props.attributes || ""}
+
+#ifdef INSTANCES
+//custom attributes
+${props.instanceAttributes || ""}
+//matricies
+in vec4 world0;
+in vec4 world1;
+in vec4 world2;
+in vec4 world3;
+#endif
+
+
+
 
 //varying
 out vec3 worldPOS;
@@ -75,7 +99,7 @@ out vec3 vLight3;
 out vec3 vLight4;
 out vec4 vAO;
 
-
+${props.varying || ""}
 
 float getTextureIndex(int index) {
   uint tInt = texelFetch(dve_voxel_animation, 
@@ -99,20 +123,13 @@ vec3 getLightValue(uint value) {
 );
 }
 
-
-
 ${NoiseShaders.FBMNoiseFunctions}
-  #ifdef INSTANCES
-  //matricies
-  in vec4 world0;
-  in vec4 world1;
-  in vec4 world2;
-  in vec4 world3;
-  //custom attributes
-  #endif
 
+${props.functions || ""}
 
   void main(void) {
+
+${props.inMainBefore || ""}
 
 vLight1 = getLightValue(uint(voxelData.x));
 vLight2 = getLightValue(uint(voxelData.y));
@@ -169,6 +186,9 @@ vDistance = distance(cameraPosition, worldPOS);
 gl_Position = viewProjection * worldPosition;
 
 #endif
+
+${props.inMainAfter || ""}
+
 
 }
 `;
@@ -287,23 +307,29 @@ ${
 
   `;
 
-  static GetFragment(main: string, top = "") {
+  static GetFragment(props: {
+    top?: string;
+    main: string;
+    uniforms?: string;
+    functions?: string;
+    varying?: string;
+    inMainBefore?: string;
+    inMainAfter?: string;
+  }) {
     const shader = /* glsl */ `#version 300 es
 precision highp float;
 precision highp int;
 precision highp usampler2D; 
 precision highp sampler2DArray;
-
-${
-  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
-}     
+${props.top || ""}
 
 //uniforms
+${SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine}     
 uniform vec3 cameraPosition;
 uniform sampler2DArray dve_voxel;
 uniform usampler2D dve_voxel_animation; 
 uniform int dve_voxel_animation_size;   
-
+${props.uniforms || ""}
 //varying
 in vec3 worldPOS;
 in float vDistance;
@@ -318,13 +344,15 @@ in vec3 vLight1;
 in vec3 vLight2;
 in vec3 vLight3;
 in vec3 vLight4;
+
+${props.varying || ""}
 //functions
 
 ${NoiseShaders.FBMNoiseFunctions}
 ${FogShaders.Functions}
 ${SkyShaders.Functions}
 
-${top}
+${props.functions || ""}
 
 vec3 getLight() {
   vec3 top    = mix( vLight2,    vLight1,    iUV.x);
@@ -332,11 +360,13 @@ vec3 getLight() {
   return mix(bottom, top, iUV.y);
 }
 
+
+
 out vec4 FragColor;  
 void main(void) {
-
- ${main}
-  
+${props.inMainBefore || ""}
+  ${props.main}
+  ${props.inMainAfter || ""}
 }
 
 

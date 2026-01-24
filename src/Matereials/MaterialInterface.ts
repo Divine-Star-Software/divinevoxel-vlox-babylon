@@ -16,6 +16,7 @@ export interface MaterialData<Data extends object = any> {
   hasEffects?: boolean;
   backFaceCulling?: boolean;
   stencil?: boolean;
+  forceDepthWrite?:boolean
 }
 
 export interface MaterialInterface<

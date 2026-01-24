@@ -50,7 +50,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
       "dve_item_animation",
       "dve_item_animation_size",
     ],
-    ["position", "normal", "textureIndex", "uv"]
+    ["position", "normal", "textureIndex", "uv"],
   );
 
   DVEBRShaderStore.storeShader("dve_item", "vertex", ItemShader.GetVertex());
@@ -67,19 +67,19 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
       "dve_voxel_animation",
       "dve_voxel_animation_size",
     ],
-    ["position", "normal", "uv", "color"]
+    ["position", "normal", "uv", "color"],
   );
 
   DVEBRShaderStore.storeShader(
     "dve_voxel_particle",
     "vertex",
-    VoxelParticleShader.GetVertex()
+    VoxelParticleShader.GetVertex(),
   );
 
   DVEBRShaderStore.storeShader(
     "dve_voxel_particle",
     "frag",
-    VoxelParticleShader.GetFragment()
+    VoxelParticleShader.GetFragment(),
   );
 
   for (const material of defaultMaterials) {
@@ -94,7 +94,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
         "dve_voxel_animation",
         "dve_voxel_animation_size",
       ],
-      ["position", "normal", "voxelData", "textureIndex", "uv", "colors"]
+      ["position", "normal", "voxelData", "textureIndex", "uv", "colors"],
     );
 
     DVEBRShaderStore.storeShader(
@@ -102,16 +102,18 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
       "vertex",
       VoxelBaseShader.GetVertex({
         doAO: true,
-      })
+      }),
     );
     DVEBRShaderStore.storeShader(
       material,
       "frag",
       material.includes("liquid")
-        ? VoxelBaseShader.GetFragment(
-            VoxelBaseShader.DefaultLiquidFragmentMain(true)
-          )
-        : VoxelBaseShader.GetFragment(VoxelBaseShader.DefaultFragmentMain(true))
+        ? VoxelBaseShader.GetFragment({
+            main: VoxelBaseShader.DefaultLiquidFragmentMain(true),
+          })
+        : VoxelBaseShader.GetFragment({
+            main: VoxelBaseShader.DefaultFragmentMain(true),
+          }),
     );
   }
 
@@ -129,7 +131,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
             textureTypeId: matData.textureTypeId || "",
           },
           ...matData,
-        }
+        },
       );
       newMat.createMaterial(scene);
       return newMat;
@@ -144,7 +146,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   renderer.sceneOptions.shade.doRGB = true;
   renderer.sceneOptions.shade.doAO = true;
   renderer.sceneOptions.shade.doColor = true;
-  renderer.sceneOptions.levels.baseLevel = .2;
+  renderer.sceneOptions.levels.baseLevel = 0.2;
   renderer.sceneOptions.levels.sunLevel = 1;
   renderer.sceneOptions.fog.setColor(255, 255, 255);
   renderer.sceneOptions.fog.heightFactor = 0.25;

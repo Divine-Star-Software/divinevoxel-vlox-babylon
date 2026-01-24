@@ -90,13 +90,16 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
     if (this.options.ubo.buffer) {
       shaderMaterial.setUniformBuffer("SceneOptions", this.options.ubo.buffer);
     }
+    if (data.forceDepthWrite !== undefined) {
+      shaderMaterial.forceDepthWrite = data.forceDepthWrite;
+    }
 
     if (data.backFaceCulling !== undefined) {
       shaderMaterial.backFaceCulling = data.backFaceCulling;
     }
 
     if (this.id.includes("dve_item")) {
-     // shaderMaterial.forceDepthWrite = true;
+      // shaderMaterial.forceDepthWrite = true;
       shaderMaterial.backFaceCulling = true;
     }
 
