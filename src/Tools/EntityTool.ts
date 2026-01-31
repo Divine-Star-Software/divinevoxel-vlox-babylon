@@ -48,10 +48,14 @@ export class EntityTool {
 
   returnAll() {
     for (const instance of this._usedInstances) {
+      this._visibleArray[instance.index] = 0;
+      const trueIndex = instance.index * 16;
+      for (let i = trueIndex; i < trueIndex + 16; i++) {
+        this._matrixArray[i] = 0;
+      }
       this._instances.push(instance);
-      this._usedInstances.delete(instance);
     }
-    this._usedInstances.clear();
+    this._usedInstances.clear(); 
   }
 
   update() {
