@@ -189,7 +189,7 @@ class SkyOptions {
   }
 }
 
-enum FogModes {
+export enum FogModes {
   None = 0,
   Exp = 1,
   Volumetric = 2,
@@ -222,18 +222,10 @@ class FogOptions {
     this._options.ubo.setFogOptions(this._options.ubo.fogOptions);
   }
 
-  get start() {
-    return this._options.ubo.fogOptions.y;
-  }
-  set start(value: number) {
-    this._options.ubo.fogOptions.y = value;
-    this._options.ubo.setFogShadeOptions(this._options.ubo.fogOptions);
-  }
-
-  get end() {
+  get distance() {
     return this._options.ubo.fogOptions.z;
   }
-  set end(value: number) {
+  set distance(value: number) {
     this._options.ubo.fogOptions.z = value;
     this._options.ubo.setFogShadeOptions(this._options.ubo.fogOptions);
   }

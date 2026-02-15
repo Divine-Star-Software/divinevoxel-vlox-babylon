@@ -23,7 +23,6 @@ const meshData = new CompactedMeshData();
 const location: LocationData = [0, 0, 0, 0];
 const found = new Set<string>();
 export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
-  static meshCache: Mesh[] = [];
   pickable = false;
   checkCollisions = false;
   serialize = false;
@@ -33,33 +32,14 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
   constructor(
     public scene: Scene,
     public engine: Engine,
-    public renderer: DVEBabylonRenderer
+    public renderer: DVEBabylonRenderer,
   ) {
     super();
     this.defaultBb = new BoundingInfo(Vector3.Zero(), new Vector3(16, 16, 16));
   }
 
   returnMesh(mesh: Mesh) {
-    mesh.geometry?.clearCachedData();
-
-    for (const bufferKind of mesh.getVerticesDataKinds()) {
-      mesh.removeVerticesData(bufferKind);
-    }
-    if (mesh.metadata.buffer && mesh.metadata.buffer instanceof Buffer) {
-      mesh.metadata.buffer.dispose();
-      mesh.metadata.buffer = null;
-    }
-    mesh.setIndices(emptyIndice);
-    if (mesh.isEnabled()) {
-      mesh.isEnabled(false);
-      for (let i = this.scene.meshes.length - 1; i > -1; i--) {
-        if (this.scene.meshes[i] == mesh) {
-          this.scene.meshes.splice(i, 1);
-          break;
-        }
-      }
-    }
-    DVEBRSectionMeshesMultiBuffer.meshCache.push(mesh);
+    mesh.dispose();
   }
 
   updateVertexData(section: SectionMesh, data: CompactedSectionVoxelMesh) {
@@ -75,41 +55,36 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
       if (section.meshes.has(subMeshMaterial)) {
         mesh = section.meshes.get(subMeshMaterial) as Mesh;
       } else {
-        if (!DVEBRSectionMeshesMultiBuffer.meshCache.length) {
-          const newMesh = new Mesh("", this.scene);
-          newMesh.renderingGroupId = 1;
-          newMesh.isPickable = false;
-          newMesh.checkCollisions = false;
-          newMesh.doNotSerialize = true;
-          newMesh.metadata = { section: true, buffer: null };
-          newMesh.alwaysSelectAsActiveMesh = true;
-          const geometry = new Geometry(
-            Geometry.RandomId(),
-            this.scene,
-            undefined,
-            false,
-            newMesh
-          );
+        const newMesh = new Mesh("", this.scene);
+        newMesh.renderingGroupId = 1;
+        newMesh.isPickable = false;
+        newMesh.checkCollisions = false;
+        newMesh.doNotSerialize = true;
+        newMesh.metadata = { section: true, buffer: null };
+        newMesh.alwaysSelectAsActiveMesh = true;
+        const geometry = new Geometry(
+          Geometry.RandomId(),
+          this.scene,
+          undefined,
+          false,
+          newMesh,
+        );
 
-          geometry._boundingInfo = new BoundingInfo(
-            new Vector3(0, 0, 0),
-            new Vector3(0, 0, 0)
-          );
-          geometry.useBoundingInfoFromGeometry = true;
-          newMesh.doNotSyncBoundingInfo = true;
-          newMesh.setEnabled(false);
-          newMesh.freezeWorldMatrix();
-          for (let i = this.scene.meshes.length - 1; i > -1; i--) {
-            if (this.scene.meshes[i] == newMesh) {
-              this.scene.meshes.splice(i, 1);
-              break;
-            }
+        geometry._boundingInfo = new BoundingInfo(
+          new Vector3(0, 0, 0),
+          new Vector3(0, 0, 0),
+        );
+        geometry.useBoundingInfoFromGeometry = true;
+        newMesh.doNotSyncBoundingInfo = true;
+        newMesh.setEnabled(false);
+        newMesh.freezeWorldMatrix();
+        for (let i = this.scene.meshes.length - 1; i > -1; i--) {
+          if (this.scene.meshes[i] == newMesh) {
+            this.scene.meshes.splice(i, 1);
+            break;
           }
-          mesh = newMesh;
-        } else {
-          mesh = DVEBRSectionMeshesMultiBuffer.meshCache.shift()!;
-          mesh.setEnabled(false);
         }
+        mesh = newMesh;
       }
 
       mesh.unfreezeWorldMatrix();
@@ -122,14 +97,13 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
         }
         mesh.geometry!.releaseForMesh(mesh);
         buffer.dispose();
-
       }
 
       mesh.metadata.buffer = DVEBRVoxelMesh.UpdateVertexDataBuffers(
         mesh,
         this.engine,
         meshData.verticies,
-        meshData.indices
+        meshData.indices,
       );
 
       const minBounds = meshData.minBounds;
