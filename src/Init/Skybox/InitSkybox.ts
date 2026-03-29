@@ -8,19 +8,18 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
   DVEBRShaderStore.storeShader(
     "dve_skybox",
     "vertex",
-    SkyboxShader.GetVertex()
+    SkyboxShader.GetVertex(),
   );
 
   DVEBRShaderStore.storeShader(
     "dve_skybox",
     "frag",
-    SkyboxShader.GetFragment()
+    SkyboxShader.GetFragment(),
   );
 
   const uniforms: string[] = [
     "world",
     "viewProjection",
-    "worldOrigin",
     "cameraPosition",
   ];
   if (!sceneOptions.ubo.suppourtsUBO) {
@@ -41,7 +40,7 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
       needAlphaBlending: false,
       needAlphaTesting: false,
     },
-    false
+    false,
   );
 
   const renderDistance = 250;
@@ -52,7 +51,7 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
       diameterZ: renderDistance,
       diameterY: renderDistance,
     },
-    renderer.scene
+    renderer.scene,
   );
   skybox.renderingGroupId = 0;
   skybox.infiniteDistance = true;

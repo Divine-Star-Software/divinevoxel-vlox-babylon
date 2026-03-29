@@ -2,7 +2,7 @@ export class SkyShaders {
     static Functions = /* glsl */ `
 
 vec3 getSkyColor(vec3 fogColor) {
-    float heightBlend = smoothstep(scene_skyOptions.x, scene_skyOptions.z, worldPOS.y);
+    float heightBlend = smoothstep(scene_skyOptions.x, scene_skyOptions.z, vWorldPOS.y);
     return  mix(fogColor, scene_skyColor, heightBlend);
 }
 

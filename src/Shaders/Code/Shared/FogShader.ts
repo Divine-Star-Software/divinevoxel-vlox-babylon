@@ -9,7 +9,7 @@ float ExponentialFog() {
 float VolumetricFog( float fogDensity) {
  
     vec3 fogOrigin = cameraPosition;
-    vec3 fogDirection = normalize(worldPOS - fogOrigin);
+    vec3 fogDirection = normalize(vWorldPOS - fogOrigin);
     float fogDepth = vDistance;
     fogDepth *= mix(1.0, 1.0, clamp((fogDepth - 5000.0) / 5000.0, 0., 1.));
     fogDepth *= fogDepth;
@@ -25,11 +25,11 @@ float AnimatedVolumetricFog( float fogDensity) {
    
     float fogTime = scene_time * 0.01;
     vec3 fogOrigin = cameraPosition;
-    vec3 fogDirection = normalize(worldPOS - fogOrigin);
+    vec3 fogDirection = normalize(vWorldPOS - fogOrigin);
     float fogDepth = vDistance;
 
     // Simple noise approach (assuming fbm3 is defined elsewhere)
-    vec3 noiseSampleCoord = worldPOS * 0.00025 + vec3(0.0, 0.0, fogTime * 0.025);
+    vec3 noiseSampleCoord = vWorldPOS * 0.00025 + vec3(0.0, 0.0, fogTime * 0.025);
     float noiseSample = fbm3(noiseSampleCoord + fbm3(noiseSampleCoord)) * 0.5 + 0.5;
 
     // Modulate fog depth
@@ -47,7 +47,7 @@ float AnimatedVolumetricFog( float fogDensity) {
 vec3 getFogColor() {
     if(scene_fogShadeOptions.x == 1.) return scene_fogColor;
 
-    float fogMulti = smoothstep(scene_skyOptions.y, scene_skyOptions.x, worldPOS.y);
+    float fogMulti = smoothstep(scene_skyOptions.y, scene_skyOptions.x, vWorldPOS.y);
     return scene_fogColor * fogMulti;
 }
 

@@ -8,8 +8,7 @@ const min = new Vector3();
 const max = new Vector3(16, 16, 16);
 const boundingBox = new BoundingBox(min, max);
 
-const addMeshes: Mesh[] = [];
-const removedMeshes: Mesh[] = [];
+
 function CullSectors(scene: Scene) {
   const camera = scene.activeCamera;
   if (!camera) return;
@@ -30,19 +29,16 @@ function CullSectors(scene: Scene) {
           if (!sectorVisible) {
             if (mesh.isEnabled()) {
               mesh.setEnabled(false);
-              removedMeshes.push(mesh);
             }
             continue;
           }
           if (camera.isInFrustum(mesh)) {
             if (!mesh.isEnabled()) {
               mesh.setEnabled(true);
-              addMeshes.push(mesh);
             }
           } else {
             if (mesh.isEnabled()) {
               mesh.setEnabled(false);
-              removedMeshes.push(mesh);
             }
           }
         }
@@ -50,18 +46,6 @@ function CullSectors(scene: Scene) {
     }
   }
 
-  for (let i = scene.meshes.length - 1; i > -1; i--) {
-    if (removedMeshes.includes(scene.meshes[i] as Mesh)) {
-      scene.meshes.splice(i, 1);
-    }
-  }
-  for (const mesh of addMeshes) {
-    if (!scene.meshes.includes(mesh)) {
-      scene.meshes.push(mesh);
-    }
-  }
-  addMeshes.length = 0;
-  removedMeshes.length = 0;
 
 }
 

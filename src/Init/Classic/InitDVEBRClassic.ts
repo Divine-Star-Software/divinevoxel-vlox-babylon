@@ -43,14 +43,9 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   //items
   DVEBRShaderStore.setShaderData(
     "dve_item",
-    [
-      "world",
-      "viewProjection",
-      "dve_item",
-      "dve_item_animation",
-      "dve_item_animation_size",
-    ],
+    ["world", "viewProjection", "dve_item_animation_size"],
     ["position", "normal", "textureIndex", "uv"],
+    ["dve_item", "dve_item_animation"],
   );
 
   DVEBRShaderStore.storeShader("dve_item", "vertex", ItemShader.GetVertex());
@@ -60,14 +55,9 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   //voxel particles
   DVEBRShaderStore.setShaderData(
     "dve_voxel_particle",
-    [
-      "world",
-      "viewProjection",
-      "dve_voxel",
-      "dve_voxel_animation",
-      "dve_voxel_animation_size",
-    ],
+    ["world", "viewProjection", "dve_voxel_animation_size"],
     ["position", "normal", "uv", "color"],
+    ["dve_voxel", "dve_voxel_animation"],
   );
 
   DVEBRShaderStore.storeShader(
@@ -90,11 +80,10 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
         "viewProjection",
         "worldOrigin",
         "cameraPosition",
-        "dve_voxel",
-        "dve_voxel_animation",
         "dve_voxel_animation_size",
       ],
-      ["position", "normal", "voxelData", "textureIndex", "uv", "colors"],
+      ["position", "normal", "textureIndex", "uv", "color", "voxelData"],
+      ["dve_voxel", "dve_voxel_animation"],
     );
 
     DVEBRShaderStore.storeShader(

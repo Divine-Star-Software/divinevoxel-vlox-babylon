@@ -46,7 +46,7 @@ export class SceneUBO {
       shader += `${start} ${key};\n`;
     }
     return /* glsl */ `
-  layout(std140) uniform SceneOptions {
+ uniform SceneOptions {
       ${shader}
   };
 `;

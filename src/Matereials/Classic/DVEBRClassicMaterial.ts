@@ -74,8 +74,9 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
       data.scene,
       this.id,
       {
-        attributes: shaderData.attributes,
+        attributes: shaderData.attributes.filter((_) => _ !== "color"),
         uniforms,
+        samplers: shaderData.samplers,
         needAlphaBlending: data.alphaBlending,
         needAlphaTesting: data.alphaTesting,
         ...(this.options.ubo.suppourtsUBO

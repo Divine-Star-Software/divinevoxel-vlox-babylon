@@ -29,11 +29,16 @@ export class DVEBRShaderStore {
   }
   static _shaderData = new Map<
     string,
-    { uniforms: string[]; attributes: string[] }
+    { uniforms: string[]; attributes: string[]; samplers: string[] }
   >();
 
-  static setShaderData(id: string, uniforms: string[], attributes: string[]) {
-    this._shaderData.set(id, { uniforms, attributes });
+  static setShaderData(
+    id: string,
+    uniforms: string[],
+    attributes: string[],
+    samplers: string[] = [],
+  ) {
+    this._shaderData.set(id, { uniforms, attributes, samplers });
   }
   static getShaderData(id: string) {
     return this._shaderData.get(id);

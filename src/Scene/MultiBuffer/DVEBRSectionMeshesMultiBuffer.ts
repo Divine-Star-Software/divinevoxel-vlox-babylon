@@ -61,7 +61,8 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
         newMesh.checkCollisions = false;
         newMesh.doNotSerialize = true;
         newMesh.metadata = { section: true, buffer: null };
-        newMesh.alwaysSelectAsActiveMesh = true;
+        //  newMesh.cullingStrategy = Mesh.CULLINGSTRATEGY_OPTIMISTIC_INCLUSION;
+      //  newMesh.alwaysSelectAsActiveMesh = true;
         const geometry = new Geometry(
           Geometry.RandomId(),
           this.scene,
@@ -78,12 +79,6 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
         newMesh.doNotSyncBoundingInfo = true;
         newMesh.setEnabled(false);
         newMesh.freezeWorldMatrix();
-        for (let i = this.scene.meshes.length - 1; i > -1; i--) {
-          if (this.scene.meshes[i] == newMesh) {
-            this.scene.meshes.splice(i, 1);
-            break;
-          }
-        }
         mesh = newMesh;
       }
 

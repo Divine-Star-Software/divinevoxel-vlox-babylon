@@ -63,29 +63,29 @@ uniform vec3 cameraPosition;
 ${props.uniforms || ""}
 
 //attributes
-in vec3 position;
-in vec3 normal;
+in vec3 position;    
+in vec3 normal;    
 in vec3 textureIndex;
-in vec2 uv;
-in vec3 colors;
-in vec4 voxelData;
+in vec2 uv;           
+in vec3 color;      
+in vec4 voxelData; 
 ${props.attributes || ""}
 
 #ifdef INSTANCES
-//custom attributes
-${props.instanceAttributes || ""}
 //matricies
 in vec4 world0;
 in vec4 world1;
 in vec4 world2;
 in vec4 world3;
+//custom attributes
+${props.instanceAttributes || ""}
 #endif
 
 
 
 
 //varying
-out vec3 worldPOS;
+out vec3 vWorldPOS;
 out float vDistance;
 out vec3 vNormal;
 out vec4 vColors;
@@ -122,7 +122,16 @@ vec3 getLightValue(uint value) {
 )
 );
 }
-
+/*
+vec3 getLightValue(uint value) {
+ return  vec3(
+    max(
+    lightGradient[(value >> sVLIndex) & lightMask] * scene_shadeOptions.x  * scene_levels.y, 
+    //base light min
+    scene_levels.x
+));
+}
+*/
 ${NoiseShaders.FBMNoiseFunctions}
 
 ${props.functions || ""}
@@ -153,8 +162,6 @@ if(animVL == 2.) {
 
 iUV = quadUVArray[( uint(voxelData.z) >> vertexIndex) & vertexMask];
 
-vNormal = normal;
-
 if(scene_shadeOptions.w == 1.0) {
     vColors = vec4(1.0, 1.0, 1.0, 1.0);
 } else {
@@ -169,23 +176,23 @@ vOverlayTextureIndex.y = getTextureIndex(int(uint(textureIndex.y) & textureIndex
 vOverlayTextureIndex.z = getTextureIndex(int((uint(textureIndex.y) >> secondaryTextureIndex) & textureIndexMask));
 vOverlayTextureIndex.w = getTextureIndex(int(uint(textureIndex.z) & textureIndexMask));
 
-#ifdef INSTANCES
-mat4 finalWorld = mat4(world0, world1, world2, world3);
-finalWorld[3].xyz += worldOrigin.xyz;
-vec4 worldPosition = finalWorld * vec4(position, 1.0);
-worldPOS = vec3(worldPosition.xyz);
-vDistance = distance(cameraPosition, worldPOS);
-
-gl_Position = viewProjection * worldPosition;
-#endif      
-#ifndef INSTANCES
-vec4 worldPosition = world * vec4(position, 1.0);
-worldPOS = vec3(worldPosition.xyz);
-vDistance = distance(cameraPosition, worldPOS);
-
-gl_Position = viewProjection * worldPosition;
-
-#endif
+    #ifdef INSTANCES
+      mat4 finalWorld = mat4(world0, world1, world2, world3);
+      finalWorld[3].xyz += worldOrigin.xyz;
+      vec4 worldPOS = finalWorld * vec4(position, 1.0);
+      vWorldPOS = worldPOS.xyz;
+      vNormal = normalize(mat3(finalWorld) * normal);
+      vDistance = distance(cameraPosition, vWorldPOS);
+      gl_Position = viewProjection * worldPOS;
+    #endif      
+    #ifndef INSTANCES
+      vec4 worldPOS = world * vec4(position, 1.0);
+      worldPOS.xyz += worldOrigin.xyz;
+      vWorldPOS = worldPOS.xyz;
+      vNormal = normalize(mat3(world) * normal);
+      vDistance = distance(cameraPosition, vWorldPOS);
+      gl_Position = viewProjection * worldPOS;
+    #endif
 
 ${props.inMainAfter || ""}
 
@@ -196,32 +203,30 @@ ${props.inMainAfter || ""}
   static DefaultLiquidFragmentMain = (doAO: boolean) => /* glsl */ `
   
   vec4 rgb = texture(dve_voxel,vec3(vec2(vUV.x,vUV.y + scene_time * .01 * -1. * vFlow),vUV.z));
-
-  if(vOverlayTextureIndex.x > 0.){
-    vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.x));
-    if(oRGB.a > 0.5) {
-      rgb = oRGB;
-    }
-  }
-  if(vOverlayTextureIndex.y > 0.){
-    vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.y));
-    if(oRGB.a > 0.5) {
-      rgb = oRGB;
-    }
-  }
-  if(vOverlayTextureIndex.z > 0.){
-
-    vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.z));
-    if(oRGB.a > 0.5) {
-      rgb = oRGB;
-    }
-  }
-  if(vOverlayTextureIndex.w > 0.){
-    vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.w));
-    if(oRGB.a > 0.5) {
-      rgb = oRGB;
-    }
-  }
+     if(vOverlayTextureIndex.x > 0.){
+        vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.x),0.0);
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
+      if(vOverlayTextureIndex.y > 0.){
+       vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.y),0.0);
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
+      if(vOverlayTextureIndex.z > 0.){
+       vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.z),0.0);
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
+      if(vOverlayTextureIndex.w > 0.){
+        vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.w),0.0);
+        if(oRGB.a > 0.5) {
+          rgb = oRGB;
+        }
+      }
 
   if (rgb.a < 0.1) { 
     discard;
@@ -252,25 +257,25 @@ ${props.inMainAfter || ""}
       vec4 rgb = texture(dve_voxel,vec3(vUV.xy,vUV.z));
           
       if(vOverlayTextureIndex.x > 0.){
-        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.x));
+        vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.x),0.0);
         if(oRGB.a > 0.5) {
           rgb = oRGB;
         }
       }
       if(vOverlayTextureIndex.y > 0.){
-        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.y));
+       vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.y),0.0);
         if(oRGB.a > 0.5) {
           rgb = oRGB;
         }
       }
       if(vOverlayTextureIndex.z > 0.){
-        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.z));
+       vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.z),0.0);
         if(oRGB.a > 0.5) {
           rgb = oRGB;
         }
       }
       if(vOverlayTextureIndex.w > 0.){
-        vec4 oRGB =  texture(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.w));
+        vec4 oRGB =  textureLod(dve_voxel, vec3(vUV.xy, vOverlayTextureIndex.w),0.0);
         if(oRGB.a > 0.5) {
           rgb = oRGB;
         }
@@ -331,7 +336,7 @@ uniform usampler2D dve_voxel_animation;
 uniform int dve_voxel_animation_size;   
 ${props.uniforms || ""}
 //varying
-in vec3 worldPOS;
+in vec3 vWorldPOS;
 in float vDistance;
 in vec3 vNormal;
 in vec4 vAO;

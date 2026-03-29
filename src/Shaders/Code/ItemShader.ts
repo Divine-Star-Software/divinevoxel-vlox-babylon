@@ -43,7 +43,7 @@ in vec4 world3;
 
 //varying
 out vec3 vNormal;
-out vec3 worldPOS;
+out vec3 vWorldPOS;
 out float vDistance;
 out float vBrightness;
 out vec3 vUV;
@@ -58,39 +58,37 @@ float getTextureIndex(int index) {
 
 void main(void) {
 
-    vNormal = normal;
-
-    vec4 worldPOSTemp = world * vec4(position, 1.0);
-    worldPOS = vec3(worldPOSTemp.x, worldPOSTemp.y, worldPOSTemp.z);
-    vDistance = distance(cameraPosition, worldPOS);
-
-    vBrightness = 1.0;
-    if(normal.y > 0.0) {
-        vBrightness += .5;
-    } else if(normal.y < 0.0) {
-        vBrightness -= .5;
-    }
-
 
     vUV.x = uv.x;
     vUV.y = uv.y;
     vUV.z = textureIndex;
 
     #ifdef INSTANCES
-    mat4 finalWorld = mat4(world0, world1, world2, world3);
-
-    vDistance = distance(cameraPosition, finalWorld[3].xyz);
-
-    finalWorld[3].xyz += worldOrigin.xyz;
-    gl_Position = viewProjection * finalWorld * vec4(position, 1.0);  
+      mat4 finalWorld = mat4(world0, world1, world2, world3);
+      finalWorld[3].xyz += worldOrigin.xyz;
+      vec4 worldPOS = finalWorld * vec4(position, 1.0);
+      vWorldPOS = worldPOS.xyz;
+      vNormal = normalize(mat3(finalWorld) * normal);
+      vDistance = distance(cameraPosition, vWorldPOS);
+      gl_Position = viewProjection * worldPOS;
     #endif      
     #ifndef INSTANCES
-    vec4 worldPosition = world * vec4(position, 1.0);
-    gl_Position = viewProjection * world * vec4(position, 1.0); 
-
+      vec4 worldPOS = world * vec4(position, 1.0);
+      worldPOS.xyz += worldOrigin.xyz;
+      vWorldPOS = worldPOS.xyz;
+      vNormal = normalize(mat3(world) * normal);
+      vDistance = distance(cameraPosition, vWorldPOS);
+      gl_Position = viewProjection * worldPOS;
     #endif
 
- 
+
+    vBrightness = 1.0;
+    if(vNormal.y > 0.0) {
+        vBrightness += .5;
+    } else if(vNormal.y < 0.0) {
+        vBrightness -= .5;
+    }
+
 
 }
 
@@ -117,7 +115,7 @@ uniform int dve_item_animation_size;
 
 //varying
 in vec3 vNormal;
-in vec3 worldPOS;
+in vec3 vWorldPOS;
 in float vDistance;
 in float vBrightness;
 in vec3 vUV;
@@ -130,18 +128,15 @@ ${SkyShaders.Functions}
 out vec4 FragColor;  
 void main(void) {
   
-    vec4 rgb = texture(dve_item,vec3(vUV.xy,vUV.z)) * vBrightness;
-    if (rgb.a < 0.1) { 
-      discard;
-      return;
-    }
+    vec4 texColor = texture(dve_item, vec3(vUV.xy, vUV.z));
+    if (texColor.a < 0.1) discard;
+    vec4 rgb = vec4(texColor.rgb * vBrightness, texColor.a);
 
     vec3 fog = getFogColor();
     vec3 sky = getSkyColor(fog);
     vec4 skyBlendColor = blendSkyColor(sky, rgb);
     vec4 fogColor = blendFog(fog, skyBlendColor);
     FragColor = fogColor;
-   // FragColor = vec4(vec3(1.) * vBrightness,1.0);
 }
         `;
   }

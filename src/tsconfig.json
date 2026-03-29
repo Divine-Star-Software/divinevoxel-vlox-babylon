@@ -11,8 +11,9 @@
     "skipLibCheck": true,
     "outDir": "../dist",
     "baseUrl": "./",
-    "types": [],
+  "types": ["@webgpu/types"],
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    
   }
 }

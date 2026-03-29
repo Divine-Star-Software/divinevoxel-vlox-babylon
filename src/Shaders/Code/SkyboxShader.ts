@@ -13,30 +13,24 @@ ${
 }     
 
 //uniforms
-uniform vec3 cameraPosition;
 uniform mat4 world;
 uniform mat4 viewProjection;
+uniform vec3 cameraPosition;
 
 //attributes
 in vec3 position;
-in float indices;
 in vec3 normal;
 
 
 //varying
-out vec3 worldPOS;
+out vec3 vWorldPOS;
 out float vDistance;
 
 void main(void) {
-
-
-    vec4 worldPOSTemp =  world * vec4(position, 1.0);
-    worldPOS = vec3(worldPOSTemp.x,worldPOSTemp.y,worldPOSTemp.z);
-    vDistance = distance(cameraPosition , worldPOS );
-
-    vec4 worldPosition = world * vec4(position, 1.0);
-     gl_Position = viewProjection * world * vec4(position, 1.0); 
-
+    vec4 worldPOS =  world * vec4(position, 1.0);
+    vWorldPOS = worldPOS.xyz;
+    vDistance = distance(cameraPosition, vWorldPOS );
+    gl_Position = viewProjection * worldPOS;
 
 } 
     `;
@@ -55,7 +49,7 @@ ${
 uniform vec3 cameraPosition;
 
 //varying
-in vec3 worldPOS;
+in vec3 vWorldPOS;
 in float vDistance;
 
 
@@ -87,7 +81,7 @@ ${
 uniform vec3 cameraPosition;
 
 //varying
-in vec3 worldPOS;
+in vec3 vWorldPOS;
 in float vDistance;
 
 
