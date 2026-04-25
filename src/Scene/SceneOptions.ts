@@ -223,11 +223,11 @@ class FogOptions {
   }
 
   get distance() {
-    return this._options.ubo.fogOptions.z;
+    return this._options.ubo.fogShadeOptions.z;
   }
   set distance(value: number) {
-    this._options.ubo.fogOptions.z = value;
-    this._options.ubo.setFogShadeOptions(this._options.ubo.fogOptions);
+    this._options.ubo.fogShadeOptions.z = value;
+    this._options.ubo.setFogShadeOptions(this._options.ubo.fogShadeOptions);
   }
 
   get skyShade() {

@@ -140,8 +140,8 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   renderer.sceneOptions.fog.setColor(255, 255, 255);
   renderer.sceneOptions.fog.heightFactor = 0.25;
   renderer.sceneOptions.sky.setColor(130, 174, 255);
-  renderer.sceneOptions.sky.horizonStart = 0;
   renderer.sceneOptions.sky.horizon = 64;
+  renderer.sceneOptions.sky.horizonStart = 0;
   renderer.sceneOptions.sky.horizonEnd = 120;
   renderer.sceneOptions.sky.startBlend = 100;
   renderer.sceneOptions.sky.endBlend = 150;
