@@ -32,7 +32,7 @@ const defaultSubstances = [
 export async function CreateTextures(
   scene: Scene,
   textureData: TextureData[],
-  progress: WorkItemProgress
+  progress: WorkItemProgress,
 ) {
   progress.setStatus("Creating Textures");
   if (CacheManager.cacheLoadEnabled && CacheManager.cachedData?.textures) {
@@ -46,7 +46,7 @@ export async function CreateTextures(
       createCache: CacheManager.cacheStoreEnabled,
       finalSize: EngineSettings.settings.rendererSettings.textureSize,
     },
-    progress
+    progress,
   );
 
   for (const [key, type] of TextureManager._compiledTextures) {
@@ -64,7 +64,7 @@ export async function CreateTextures(
       false,
       undefined,
       Engine.TEXTURE_NEAREST_NEAREST,
-      Engine.TEXTURETYPE_UNSIGNED_SHORT
+      Engine.TEXTURETYPE_UNSIGNED_SHORT,
     );
     (animatedTexture.shaderTexture as RawTexture).metadata = {
       buffer: animatedTexture._buffer,
@@ -80,11 +80,11 @@ export async function CreateDefaultRenderer(
     createMaterial: (
       renderer: DVEBabylonRenderer,
       scene: Scene,
-      matData: NodeMaterialData
+      matData: NodeMaterialData,
     ) => MaterialInterface;
     afterCreate?: () => Promise<void>;
     progress: WorkItemProgress;
-  }
+  },
 ): Promise<DVEBabylonRenderer> {
   const { scene, progress } = initData;
   progress.setStatus("Creating Default Renderer");
@@ -124,19 +124,28 @@ export async function CreateDefaultRenderer(
     };
   });
   const substances = [...DefaultSubstances, ...initData.substances];
+  const mats: MaterialInterface[] = [];
 
-  const materials: NodeMaterialData[] = [];
   for (const substance of substances) {
-    const newMaterial = {
+    const mat = {
       id: substance.id,
       shaderId: substance.id,
       textureTypeId: "dve_voxel",
       ...substance.material,
     };
 
-    materials.push(newMaterial);
+    const newMat = initData.createMaterial(renderer, scene, mat);
+    renderer.materials.register(mat.id, newMat);
+    if (substance.textures) {
+      for (const key in substance.textures) {
+        const text = substance.textures[key];
+        newMat.setTexture(key, text);
+      }
+    }
+    mats.push(newMat);
   }
 
+  const materials: NodeMaterialData[] = [];
   materials.push(
     {
       id: "dve_item",
@@ -144,7 +153,6 @@ export async function CreateDefaultRenderer(
       textureTypeId: "dve_item",
       alphaBlending: false,
       alphaTesting: true,
-      
     },
     {
       id: "dve_voxel_particle",
@@ -152,10 +160,8 @@ export async function CreateDefaultRenderer(
       textureTypeId: "dve_voxel",
       alphaBlending: true,
       alphaTesting: false,
-    }
+    },
   );
-
-  const mats: MaterialInterface[] = [];
 
   for (const mat of materials) {
     const newMat = initData.createMaterial(renderer, scene, mat);
@@ -169,7 +175,7 @@ export async function CreateDefaultRenderer(
     for (const [key, type] of TextureManager._compiledTextures) {
       if (type.animatedTexture.tick(scene.deltaTime)) {
         (type.animatedTexture.shaderTexture as RawTexture).update(
-          type.animatedTexture._buffer
+          type.animatedTexture._buffer,
         );
       }
     }

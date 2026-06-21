@@ -8,7 +8,6 @@ const min = new Vector3();
 const max = new Vector3(16, 16, 16);
 const boundingBox = new BoundingBox(min, max);
 
-
 function CullSectors(scene: Scene) {
   const camera = scene.activeCamera;
   if (!camera) return;
@@ -19,7 +18,7 @@ function CullSectors(scene: Scene) {
       max.set(
         sector.position[0] + WorldSpaces.sector.bounds.x,
         sector.position[1] + WorldSpaces.sector.bounds.y,
-        sector.position[2] + WorldSpaces.sector.bounds.z
+        sector.position[2] + WorldSpaces.sector.bounds.z,
       );
       boundingBox.reConstruct(min, max);
       const sectorVisible = camera.isInFrustum(boundingBox);
@@ -29,29 +28,30 @@ function CullSectors(scene: Scene) {
           if (!sectorVisible) {
             if (mesh.isEnabled()) {
               mesh.setEnabled(false);
+              mesh.isVisible = false;
             }
             continue;
           }
           if (camera.isInFrustum(mesh)) {
             if (!mesh.isEnabled()) {
               mesh.setEnabled(true);
+              mesh.isVisible = true;
             }
           } else {
             if (mesh.isEnabled()) {
               mesh.setEnabled(false);
+              mesh.isVisible = false;
             }
           }
         }
       }
     }
   }
-
-
 }
 
 export class DVEBRMeshCuller {
   init(scene: Scene, bufferMode: "single" | "multi") {
-    scene.freezeActiveMeshes();
+    scene.freezeActiveMeshes(true);
     scene.registerBeforeRender(() => {
       CullSectors(scene);
     });

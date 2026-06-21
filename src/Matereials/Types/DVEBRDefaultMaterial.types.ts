@@ -2,6 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Vec2Array, Vec3Array } from "@amodx/math";
 import { TextureData } from "@divinevoxel/vlox/Textures/Texture.types";
 import { DVEBabylonRenderer } from "Renderer/DVEBabylonRenderer";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 
 export type DVEBRDefaultMaterialBaseData = {
   textureData: TextureData[];
@@ -18,7 +19,7 @@ export type NodeMaterialOptions = {
   hasEffects?: boolean;
   backFaceCulling?: boolean;
   stencil?: boolean;
-  forceDepthWrite?:boolean;
+  forceDepthWrite?: boolean;
 };
 
 export type NodeMeshData = {
@@ -37,4 +38,5 @@ export type NodeSubstanceData = {
   textureType: string;
   material: NodeMaterialOptions;
   mesh: NodeMeshOptions;
+  textures?: Record<string, Texture>;
 };

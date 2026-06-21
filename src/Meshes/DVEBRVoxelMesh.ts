@@ -7,7 +7,6 @@ import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geo
 import { Scene } from "@babylonjs/core/scene";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
 export class DVEBRVoxelMesh {
-
   static CreateSubMesh(data: CompactSubMesh, scene: Scene, engine: Engine) {
     const [materialId, vertexBuffer, indexBuffer] = data;
     const mesh = new Mesh("", scene);
@@ -20,13 +19,15 @@ export class DVEBRVoxelMesh {
   static UpdateVertexData(mesh: Mesh, engine: Engine, data: CompactSubMesh) {
     this.UpdateVertexDataBuffers(mesh, engine, data[1], data[2]);
   }
-  
+
   static UpdateVertexDataBuffers(
     mesh: Mesh,
     engine: Engine,
     vertices: Float32Array,
-    indices: Uint16Array<any> | Uint32Array<any>
+    indices: Uint16Array<any> | Uint32Array<any>,
   ) {
+    const GL_UNSIGNED_INT = 5125;
+
     const buffer = new Buffer(engine, vertices, false);
     const geo = mesh.geometry ? mesh.geometry : mesh;
     geo.setVerticesBuffer(
@@ -39,8 +40,8 @@ export class DVEBRVoxelMesh {
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.PositionOffset,
-        3
-      )
+        3,
+      ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
@@ -52,8 +53,8 @@ export class DVEBRVoxelMesh {
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.NormalOffset,
-        3
-      )
+        3,
+      ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
@@ -65,8 +66,10 @@ export class DVEBRVoxelMesh {
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.TextureIndexOffset,
-        3
-      )
+        3,
+        GL_UNSIGNED_INT,
+        false,
+      ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
@@ -78,8 +81,8 @@ export class DVEBRVoxelMesh {
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.UVOffset,
-        2
-      )
+        2,
+      ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
@@ -91,8 +94,8 @@ export class DVEBRVoxelMesh {
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.ColorOffset,
-        3
-      )
+        3,
+      ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
@@ -104,8 +107,10 @@ export class DVEBRVoxelMesh {
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.VoxelDataOFfset,
-        4
-      )
+        4,
+        GL_UNSIGNED_INT,
+        false,
+      ),
     );
     geo.setIndices(indices);
     return buffer;
@@ -128,5 +133,4 @@ export class DVEBRVoxelMesh {
       );
     }
   } */
-
 }

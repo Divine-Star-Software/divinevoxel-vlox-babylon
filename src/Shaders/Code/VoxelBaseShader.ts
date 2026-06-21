@@ -47,7 +47,7 @@ const float aoArray[5] = float[5](1., pow( 1. - .2 , 2.2), pow( 1. - .2 * 2., 2.
 const vec2 quadUVArray[4] = vec2[4](vec2(1.,1.),vec2(0.,1.),vec2(0.,0.),vec2(1.,0.));     
 
 
-//texture animations
+//textures
 uniform sampler2DArray dve_voxel;
 uniform usampler2D dve_voxel_animation; 
 uniform int dve_voxel_animation_size;
@@ -56,6 +56,7 @@ uniform int dve_voxel_animation_size;
 ${SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine}     
 
 uniform mat4 world;
+uniform mat4 view;
 uniform mat4 viewProjection;
 uniform vec3 worldOrigin;
 uniform vec3 cameraPosition;
@@ -65,10 +66,10 @@ ${props.uniforms || ""}
 //attributes
 in vec3 position;    
 in vec3 normal;    
-in vec3 textureIndex;
+in uvec3 textureIndex;
 in vec2 uv;           
 in vec3 color;      
-in vec4 voxelData; 
+in uvec4 voxelData; 
 ${props.attributes || ""}
 
 #ifdef INSTANCES
@@ -87,7 +88,7 @@ ${props.instanceAttributes || ""}
 //varying
 out vec3 vWorldPOS;
 out float vDistance;
-out vec3 vNormal;
+out vec3 vWorldNormal;
 out vec4 vColors;
 out float vFlow;
 out vec3 vUV;
@@ -168,20 +169,20 @@ if(scene_shadeOptions.w == 1.0) {
     vColors = vec4(1.0, 1.0, 1.0, 1.0);
 }
 
-vUV.x = uv.x;
-vUV.y = uv.y;
-vUV.z = getTextureIndex(int(uint(textureIndex.x) & textureIndexMask));
-vOverlayTextureIndex.x = getTextureIndex(int((uint(textureIndex.x) >> secondaryTextureIndex) & textureIndexMask));
-vOverlayTextureIndex.y = getTextureIndex(int(uint(textureIndex.y) & textureIndexMask));
-vOverlayTextureIndex.z = getTextureIndex(int((uint(textureIndex.y) >> secondaryTextureIndex) & textureIndexMask));
-vOverlayTextureIndex.w = getTextureIndex(int(uint(textureIndex.z) & textureIndexMask));
+  vUV.x = uv.x;
+  vUV.y = uv.y;
+  vUV.z = getTextureIndex(int(textureIndex.x & textureIndexMask));
+  vOverlayTextureIndex.x = getTextureIndex(int((textureIndex.x >> secondaryTextureIndex) & textureIndexMask));
+  vOverlayTextureIndex.y = getTextureIndex(int(textureIndex.y & textureIndexMask));
+  vOverlayTextureIndex.z = getTextureIndex(int((textureIndex.y >> secondaryTextureIndex) & textureIndexMask));
+  vOverlayTextureIndex.w = getTextureIndex(int(textureIndex.z & textureIndexMask));
 
     #ifdef INSTANCES
       mat4 finalWorld = mat4(world0, world1, world2, world3);
       finalWorld[3].xyz += worldOrigin.xyz;
       vec4 worldPOS = finalWorld * vec4(position, 1.0);
       vWorldPOS = worldPOS.xyz;
-      vNormal = normalize(mat3(finalWorld) * normal);
+      vWorldNormal = normalize(mat3(finalWorld) * normal);
       vDistance = distance(cameraPosition, vWorldPOS);
       gl_Position = viewProjection * worldPOS;
     #endif      
@@ -189,7 +190,7 @@ vOverlayTextureIndex.w = getTextureIndex(int(uint(textureIndex.z) & textureIndex
       vec4 worldPOS = world * vec4(position, 1.0);
       worldPOS.xyz += worldOrigin.xyz;
       vWorldPOS = worldPOS.xyz;
-      vNormal = normalize(mat3(world) * normal);
+      vWorldNormal = normalize(mat3(world) * normal);
       vDistance = distance(cameraPosition, vWorldPOS);
       gl_Position = viewProjection * worldPOS;
     #endif
@@ -200,7 +201,7 @@ ${props.inMainAfter || ""}
 }
 `;
   }
-  static DefaultLiquidFragmentMain = (doAO: boolean) => /* glsl */ `
+  static DefaultLiquidFragmentMain = () => /* glsl */ `
   
   vec4 rgb = texture(dve_voxel,vec3(vec2(vUV.x,vUV.y + scene_time * .01 * -1. * vFlow),vUV.z));
      if(vOverlayTextureIndex.x > 0.){
@@ -248,7 +249,10 @@ ${props.inMainAfter || ""}
 
   `;
 
-  static DefaultFragmentMain = (doAO: boolean) => /* glsl */ `
+  static DefaultFragmentMain = (options?: {
+    doAO?: boolean;
+    beforeColorOut?: string;
+  }) => /* glsl */ `
     if(vDistance > scene_skyShadeOptions.y) {
         discard;
       return;
@@ -282,7 +286,7 @@ ${props.inMainAfter || ""}
       }
 
 ${
-  doAO
+  !options || options.doAO == undefined || options.doAO
     ? /*glsl */ `
     if(scene_shadeOptions.z == 1.) {
       float top    = mix( vAO.y,    vAO.x,    iUV.x);
@@ -294,10 +298,7 @@ ${
     : ``
 }
 
-  if (rgb.a < 0.1) { 
-    discard;
-    return;
-  }
+
 
   //mix color
   rgb *= vColors;
@@ -306,8 +307,13 @@ ${
   vec3 fog = getFogColor();
   vec3 sky = getSkyColor(fog);
   vec4 skyBlendColor = blendSkyColor(sky, rgb);
-  vec4 fogColor = blendFog(fog, skyBlendColor);
-  FragColor = fogColor;
+  vec4 finalColor = blendFog(fog, skyBlendColor);
+  ${options?.beforeColorOut ? options?.beforeColorOut : ""}
+ if (finalColor.a < 0.1) { 
+    discard;
+    return;
+  }
+  FragColor = finalColor;
 
 
   `;
@@ -318,6 +324,7 @@ ${
     uniforms?: string;
     functions?: string;
     varying?: string;
+    textures?: string;
     inMainBefore?: string;
     inMainAfter?: string;
   }) {
@@ -333,12 +340,13 @@ ${SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine}
 uniform vec3 cameraPosition;
 uniform sampler2DArray dve_voxel;
 uniform usampler2D dve_voxel_animation; 
+${props.textures ? props.textures : ""}
 uniform int dve_voxel_animation_size;   
 ${props.uniforms || ""}
 //varying
 in vec3 vWorldPOS;
 in float vDistance;
-in vec3 vNormal;
+in vec3 vWorldNormal;
 in vec4 vAO;
 in vec4 vColors;
 in float vFlow;

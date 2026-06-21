@@ -15,13 +15,16 @@ export class SubBufferMesh {
   setEnabled(enabled: boolean) {
     this._enabled = enabled;
     if (enabled) {
-      this.allocation._bufferMesh.voxelScene.active.set(this.mesh,this);
+      this.allocation._bufferMesh.voxelScene.active.set(this.mesh, this);
     } else {
       this.allocation._bufferMesh.voxelScene.active.delete(this.mesh);
     }
   }
   isEnabled() {
     return this._enabled;
+  }
+  isInFrustum(planes: any[]) {
+    return this.mesh.isInFrustum(planes);
   }
 
   render() {

@@ -62,7 +62,7 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
         newMesh.doNotSerialize = true;
         newMesh.metadata = { section: true, buffer: null };
         //  newMesh.cullingStrategy = Mesh.CULLINGSTRATEGY_OPTIMISTIC_INCLUSION;
-      //  newMesh.alwaysSelectAsActiveMesh = true;
+        //  newMesh.alwaysSelectAsActiveMesh = true;
         const geometry = new Geometry(
           Geometry.RandomId(),
           this.scene,
@@ -114,7 +114,7 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
 
       mesh.getBoundingInfo().reConstruct(min, max, mesh.getWorldMatrix());
       mesh.freezeWorldMatrix();
-
+      this.scene.freezeActiveMeshes(true);
       mesh.material = this.renderer.materials.get(subMeshMaterial)!._material;
 
       section.meshes.set(subMeshMaterial, mesh);

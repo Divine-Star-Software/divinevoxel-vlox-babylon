@@ -45,6 +45,14 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     return mesh;
   }
 
+
+  private _disposeBufferMesh(bufferMesh: BufferMesh) {
+    const idx = this._meshBuffers.indexOf(bufferMesh);
+    if (idx === -1) return;
+    this._meshBuffers.splice(idx, 1);
+    bufferMesh.dispose();
+  }
+
   removeMesh(mesh: SubBufferMesh) {
     const bufferMesh = mesh.allocation._bufferMesh;
 
@@ -52,6 +60,12 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     mesh.mesh.dispose();
     (mesh as any).mesh = null;
     bufferMesh.deallocate(mesh.allocation);
+
+
+    if (bufferMesh._allocations === 0 && this._meshBuffers.length > 1) {
+      this._disposeBufferMesh(bufferMesh);
+    }
+
     return null;
   }
 

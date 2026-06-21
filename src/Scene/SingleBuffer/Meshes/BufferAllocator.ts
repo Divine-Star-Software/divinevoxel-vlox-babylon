@@ -1,176 +1,165 @@
 /**
- * Class to manage buffer allocation using the buddy algorithm,
- * using Sets for free lists to speed up add/remove.
+ * Buddy buffer allocator
  */
 export class BufferAllocator {
-  /** Total size of the memory pool in bytes */
-  size: number;
+  readonly size: number;
 
-  /** Minimum allocatable block size (power of 2) */
-  private minBlockSize: number;
+  private readonly minBlockSize: number;
+  private readonly minBlockShift: number; // log2(minBlockSize)
+  private readonly sizeShift: number; // log2(size)
+  private readonly levels: number; // sizeShift - minBlockShift + 1
+  private readonly numBlocks: number; // size / minBlockSize
 
-  /** Number of levels in the buddy system */
-  private levels: number;
-
-  /**
-   * Free lists, keyed by level.
-   * - `level = 0` is the largest block (entire buffer).
-   * - `level = levels - 1` is the smallest block (minBlockSize).
-   *
-   * Each free list is now a Set<number>, so membership checks & removals are O(1).
+  /* Doubly-linked free lists. Keyed by block-index (= offset / minBlockSize).
+   * -1 means "no link" (head/tail terminator).
    */
-  private freeLists: Map<number, Set<number>>;
+  private readonly nextFree: Int32Array;
+  private readonly prevFree: Int32Array;
+  private readonly freeHead: Int32Array;
 
-  /**
-   * Tracks currently allocated blocks:
-   *   key = offset, value = block size.
+  private nonEmptyMask: number = 0;
+
+  /* Per-block-index state byte:
+   *   0xFF             = not the start of any block right now (inside another block)
+   *   0x00..0x7E       = start of a FREE block at level (state & 0x7F)
+   *   0x80..0xFE       = start of an ALLOCATED block at level (state & 0x7F)
    */
-  private allocations: Map<number, number>;
+  private readonly state: Uint8Array;
+
+  private static readonly STATE_NONE = 0xff;
+  private static readonly STATE_ALLOC = 0x80;
 
   constructor(size: number, minBlockSize: number = 64) {
-    // Validate inputs
-    if ((size & (size - 1)) !== 0) {
-      throw new Error("Size must be a power of 2.");
+    if (!Number.isInteger(size) || size <= 0 || (size & (size - 1)) !== 0) {
+      throw new Error("size must be a positive power of 2.");
     }
-    if (minBlockSize > size || (minBlockSize & (minBlockSize - 1)) !== 0) {
-      throw new Error("minBlockSize must be a power of 2 and <= total size.");
+    if (size > 1 << 30) {
+      throw new Error(
+        "size must be <= 2^30 (JavaScript 32-bit bitwise limit).",
+      );
+    }
+    if (
+      !Number.isInteger(minBlockSize) ||
+      minBlockSize <= 0 ||
+      (minBlockSize & (minBlockSize - 1)) !== 0 ||
+      minBlockSize > size
+    ) {
+      throw new Error(
+        "minBlockSize must be a positive power of 2 and <= size.",
+      );
     }
 
     this.size = size;
     this.minBlockSize = minBlockSize;
-    // e.g., size=1024 & minBlockSize=64 => size/minBlockSize=16 => log2(16)=4 => +1 => 5 levels
-    this.levels = Math.log2(size / minBlockSize) + 1;
+    this.minBlockShift = 31 - Math.clz32(minBlockSize);
+    this.sizeShift = 31 - Math.clz32(size);
+    this.numBlocks = size >>> this.minBlockShift;
+    this.levels = this.sizeShift - this.minBlockShift + 1;
 
-    this.freeLists = new Map();
-    this.allocations = new Map();
+    this.nextFree = new Int32Array(this.numBlocks);
+    this.prevFree = new Int32Array(this.numBlocks);
+    this.freeHead = new Int32Array(this.levels);
+    this.state = new Uint8Array(this.numBlocks);
 
-    // Initialize all free lists as empty Sets
-    for (let i = 0; i < this.levels; i++) {
-      this.freeLists.set(i, new Set());
-    }
-    // The entire buffer (offset=0) is free at the top level (level=0)
-    this.freeLists.get(0)!.add(0);
+    this.freeHead.fill(-1);
+    this.state.fill(BufferAllocator.STATE_NONE);
+
+    this.state[0] = 0;
+    this.nextFree[0] = -1;
+    this.prevFree[0] = -1;
+    this.freeHead[0] = 0;
+    this.nonEmptyMask = 1;
   }
 
-  /**
-   * Allocate a block of at least `requestedSize` bytes.
-   * Returns the offset in the buffer or `null` if no space.
-   */
   allocate(requestedSize: number): number | null {
-    let blockSize = this.minBlockSize;
-    let level = this.levels - 1; // Start from the smallest blocks
-
-    // Find the smallest power-of-two >= requestedSize
-    while (blockSize < requestedSize) {
-      blockSize <<= 1; // multiply by 2
-      level--;
-      // If we exceed the largest block, fail
-      if (level < 0) {
-        return null;
-      }
+    if (
+      typeof requestedSize !== "number" ||
+      !Number.isFinite(requestedSize) ||
+      requestedSize <= 0 ||
+      requestedSize > this.size
+    ) {
+      return null;
     }
 
-    // Look from `level` up to 0 (largest) for a free block
-    for (let i = level; i >= 0; i--) {
-      const list = this.freeLists.get(i)!;
-      if (list.size > 0) {
-        // Take *any* free block (e.g. first in the Set)
-        const offset = list.values().next().value!;
-        list.delete(offset);
+    const need =
+      requestedSize < this.minBlockSize
+        ? this.minBlockSize
+        : Math.ceil(requestedSize);
 
-        // Now split that block down to the target level
-        return this.splitAndAllocate(offset, i, level);
-      }
+    const blockShift =
+      (need & (need - 1)) === 0 ? 31 - Math.clz32(need) : 32 - Math.clz32(need);
+    const targetLevel = this.sizeShift - blockShift;
+
+    const candidateMask = this.nonEmptyMask & ((1 << (targetLevel + 1)) - 1);
+    if (candidateMask === 0) return null;
+    let level = 31 - Math.clz32(candidateMask);
+
+    let blockIdx = this.freeHead[level];
+    this._unlink(blockIdx, level);
+
+    while (level < targetLevel) {
+      level++;
+      const halfBlocks = this.numBlocks >>> level;
+      const buddyIdx = blockIdx + halfBlocks;
+      this._link(buddyIdx, level);
     }
-    // No suitable block found
-    return null;
+
+    this.state[blockIdx] = targetLevel | BufferAllocator.STATE_ALLOC;
+    return blockIdx << this.minBlockShift;
   }
 
-  /**
-   * Free (deallocate) a previously allocated block at given `offset`.
-   */
   free(offset: number): void {
-    if (!this.allocations.has(offset)) {
-      throw new Error("Invalid free: Block not allocated or unknown offset");
+    if (
+      typeof offset !== "number" ||
+      !Number.isInteger(offset) ||
+      offset < 0 ||
+      offset >= this.size ||
+      (offset & (this.minBlockSize - 1)) !== 0
+    ) {
+      throw new Error("Invalid free: offset is out of range or not aligned.");
     }
 
-    // Get the block size
-    const blockSize = this.allocations.get(offset)!;
-    this.allocations.delete(offset);
-
-    // Determine which level this block belongs to
-    const level = this.getLevel(blockSize);
-
-    // Mark it free
-    this.freeLists.get(level)!.add(offset);
-
-    // Attempt to coalesce with buddy
-    this.tryCoalesce(offset, level);
-  }
-
-  /**
-   * Splits a block from `startLevel` down to `targetLevel`.
-   * Returns the final allocated offset.
-   */
-  private splitAndAllocate(offset: number, startLevel: number, targetLevel: number): number {
-    // For each intermediate level, split the block in half:
-    for (let level = startLevel; level < targetLevel; level++) {
-      // Half of the current block size
-      const halfSize = this.size >> (level + 1);
-      // The buddy offset is the "second half"
-      const buddyOffset = offset + halfSize;
-
-      // The buddy becomes free at the next level
-      this.freeLists.get(level + 1)!.add(buddyOffset);
-      // We continue splitting the *first half*, so offset remains
-      // at the same place for the next iteration
+    let idx = offset >>> this.minBlockShift;
+    const s = this.state[idx];
+    if ((s & BufferAllocator.STATE_ALLOC) === 0) {
+      throw new Error("Invalid free: block not allocated or unknown offset.");
     }
 
-    // Now offset has size = (this.size >> targetLevel)
-    this.allocations.set(offset, this.size >> targetLevel);
-    return offset;
-  }
+    let level = s & 0x7f;
+    this.state[idx] = BufferAllocator.STATE_NONE;
 
-  /**
-   * Attempt to merge (coalesce) a freed block with its buddy
-   * to form a larger free block at the next higher level.
-   */
-  private tryCoalesce(offset: number, level: number): void {
-    // If already the top-level block, can't go bigger
-    if (level <= 0) return;
-
-    // The size of blocks at this level
-    const blockSize = this.size >> level;
-
-    // Buddy has the same level-size, so they differ by exactly `blockSize`
-    const buddyOffset = offset ^ blockSize;
-
-    const freeList = this.freeLists.get(level)!;
-
-    // Check if buddy is also free
-    if (freeList.has(buddyOffset)) {
-      // Remove buddy from this level’s free list
-      freeList.delete(buddyOffset);
-
-      // Also remove the current offset (we added it just before calling tryCoalesce)
-      freeList.delete(offset);
-
-      // The merged block starts at the smaller offset of the two
-      const parentOffset = Math.min(offset, buddyOffset);
-
-      // Insert the merged block into the higher-level free list
-      this.freeLists.get(level - 1)!.add(parentOffset);
-
-      // Recurse upward
-      this.tryCoalesce(parentOffset, level - 1);
+    while (level > 0) {
+      const halfBlocks = this.numBlocks >>> level;
+      const buddyIdx = idx ^ halfBlocks;
+      if (this.state[buddyIdx] !== level) break;
+      this._unlink(buddyIdx, level);
+      this.state[buddyIdx] = BufferAllocator.STATE_NONE;
+      if (buddyIdx < idx) idx = buddyIdx;
+      level--;
     }
+
+    this._link(idx, level);
   }
 
-  /**
-   * Given a block size, return its level.
-   * e.g. if blockSize = 64 and total size=1024 => level=4 (0-based).
-   */
-  private getLevel(blockSize: number): number {
-    return Math.log2(this.size / blockSize);
+  private _link(blockIdx: number, level: number): void {
+    const head = this.freeHead[level];
+    this.nextFree[blockIdx] = head;
+    this.prevFree[blockIdx] = -1;
+    if (head !== -1) this.prevFree[head] = blockIdx;
+    this.freeHead[level] = blockIdx;
+    this.state[blockIdx] = level;
+    this.nonEmptyMask |= 1 << level;
+  }
+
+  private _unlink(blockIdx: number, level: number): void {
+    const next = this.nextFree[blockIdx];
+    const prev = this.prevFree[blockIdx];
+    if (prev === -1) {
+      this.freeHead[level] = next;
+      if (next === -1) this.nonEmptyMask &= ~(1 << level);
+    } else {
+      this.nextFree[prev] = next;
+    }
+    if (next !== -1) this.prevFree[next] = prev;
   }
 }

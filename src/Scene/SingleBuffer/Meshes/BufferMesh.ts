@@ -37,7 +37,7 @@ export class BufferMesh extends Mesh {
 
   constructor(
     public voxelScene: SingleBufferVoxelScene,
-    public totalVertices: number
+    public totalVertices: number,
   ) {
     super("", voxelScene.renderer.scene);
     const scene = this.voxelScene.renderer.scene;
@@ -46,16 +46,14 @@ export class BufferMesh extends Mesh {
     this.engine = engine as any;
     const mesh = this;
 
-    const gl = engine._gl;
-
     const verteicesByteSize = nextPowerOf2(
-      totalVertices * VoxelMeshVertexStructCursor.VertexByteSize
+      totalVertices * VoxelMeshVertexStructCursor.VertexByteSize,
     );
-    this._verticesAllocator = new BufferAllocator(verteicesByteSize);
+    this._verticesAllocator = new BufferAllocator(verteicesByteSize, 1024);
     const indicesByteSize = nextPowerOf2(
-      totalVertices * Uint32Array.BYTES_PER_ELEMENT
+      totalVertices * Uint32Array.BYTES_PER_ELEMENT,
     );
-    this._indicesAllocator = new BufferAllocator(indicesByteSize);
+    this._indicesAllocator = new BufferAllocator(indicesByteSize, 256);
     mesh.doNotSyncBoundingInfo = true;
     mesh.material = this.voxelScene._material;
     //   this._mesh = mesh;
@@ -70,25 +68,40 @@ export class BufferMesh extends Mesh {
       scene,
       undefined,
       true,
-      this
+      this,
     );
 
     geometry._boundingInfo = new BoundingInfo(min, max);
     geometry.useBoundingInfoFromGeometry = true;
 
-    const verticies = new Float32Array(new ArrayBuffer(verteicesByteSize));
-
     const verticesBuffer = new Buffer(
       engine,
-      verticies,
+      new Float32Array(0),
       true,
-      VoxelMeshVertexStructCursor.VertexFloatSize
+      VoxelMeshVertexStructCursor.VertexFloatSize,
     );
     this._vertices = verticesBuffer;
-    this._indices = this.engine.createIndexBuffer(
-      new Uint32Array(new ArrayBuffer(indicesByteSize)),
-      true
-    );
+
+    this._indices = this.engine.createIndexBuffer(new Uint32Array(0), true);
+
+    const gl = engine._gl!;
+
+    const vboHandle = verticesBuffer.getBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, vboHandle.underlyingResource);
+    gl.bufferData(gl.ARRAY_BUFFER, verteicesByteSize, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    vboHandle.capacity = verteicesByteSize;
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indices.underlyingResource);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indicesByteSize, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    this._indices.capacity = indicesByteSize;
+
+    (verticesBuffer as any)._data = null;
+    //  const GL_UNSIGNED_INT = 5125;
+
+    const GL_UNSIGNED_INT = 5125;
+
     //@ts-ignore
     geometry._indexBuffer = this._indices;
     geometry.setVerticesBuffer(
@@ -106,10 +119,10 @@ export class BufferMesh extends Mesh {
         undefined,
         undefined,
         undefined,
-        false
+        false,
       ),
       undefined,
-      false
+      false,
     );
     geometry.setVerticesBuffer(
       new VertexBuffer(
@@ -126,10 +139,10 @@ export class BufferMesh extends Mesh {
         undefined,
         undefined,
         undefined,
-        false
+        false,
       ),
       undefined,
-      false
+      false,
     );
     geometry.setVerticesBuffer(
       new VertexBuffer(
@@ -142,14 +155,14 @@ export class BufferMesh extends Mesh {
         undefined,
         VoxelMeshVertexStructCursor.TextureIndexOffset,
         4,
+        GL_UNSIGNED_INT,
+        false,
         undefined,
         undefined,
-        undefined,
-        undefined,
-        false
+        false,
       ),
       undefined,
-      false
+      false,
     );
     geometry.setVerticesBuffer(
       new VertexBuffer(
@@ -166,10 +179,10 @@ export class BufferMesh extends Mesh {
         undefined,
         undefined,
         undefined,
-        false
+        false,
       ),
       undefined,
-      false
+      false,
     );
     geometry.setVerticesBuffer(
       new VertexBuffer(
@@ -186,10 +199,10 @@ export class BufferMesh extends Mesh {
         undefined,
         undefined,
         undefined,
-        false
+        false,
       ),
       undefined,
-      false
+      false,
     );
     geometry.setVerticesBuffer(
       new VertexBuffer(
@@ -202,14 +215,14 @@ export class BufferMesh extends Mesh {
         undefined,
         VoxelMeshVertexStructCursor.VoxelDataOFfset,
         4,
+        GL_UNSIGNED_INT,
+        false,
         undefined,
         undefined,
-        undefined,
-        undefined,
-        false
+        false,
       ),
       undefined,
-      false
+      false,
     );
 
     this.subMeshes = [];
@@ -219,10 +232,10 @@ export class BufferMesh extends Mesh {
 
   allocate(
     verticesCount: number,
-    indicesCount: number
+    indicesCount: number,
   ): BufferAllocation | null {
     const vertexOffset = this._verticesAllocator.allocate(
-      (verticesCount + 4) * VoxelMeshVertexStructCursor.VertexByteSize
+      (verticesCount + 4) * VoxelMeshVertexStructCursor.VertexByteSize,
     );
     if (vertexOffset === null) {
       return null;
@@ -232,7 +245,7 @@ export class BufferMesh extends Mesh {
       VoxelMeshVertexStructCursor.VertexByteSize;
 
     const indexOffset = this._indicesAllocator.allocate(
-      indicesCount * Uint32Array.BYTES_PER_ELEMENT
+      indicesCount * Uint32Array.BYTES_PER_ELEMENT,
     );
     if (indexOffset === null) {
       this._verticesAllocator.free(vertexOffset);
@@ -249,7 +262,7 @@ export class BufferMesh extends Mesh {
     allocation.indiceAllocationId = indexOffset;
     allocation.indicesCount = indicesCount;
     allocation.indicesStart = Math.floor(
-      indexOffset / Uint32Array.BYTES_PER_ELEMENT
+      indexOffset / Uint32Array.BYTES_PER_ELEMENT,
     );
     this._allocations++;
     return allocation;
@@ -264,31 +277,30 @@ export class BufferMesh extends Mesh {
   writeBuffers(
     allocation: BufferAllocation,
     verticies: Float32Array,
-    indices: Uint32Array
+    indices: Uint32Array,
   ) {
     const gl = this.engine._gl!;
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indices.underlyingResource);
-    gl.bindBuffer(
-      gl.ARRAY_BUFFER,
-      this._vertices.getBuffer()!.underlyingResource
-    );
+    const vbo = this._vertices.getBuffer()!.underlyingResource;
+    const ibo = this._indices.underlyingResource;
 
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, vbo);
     gl.bufferSubData(
-      gl.ELEMENT_ARRAY_BUFFER,
-      allocation.indicesStart * 4,
-      indices
-    );
-    gl.bufferSubData(
-      gl.ARRAY_BUFFER,
+      gl.COPY_WRITE_BUFFER,
       allocation.verticesStart *
         VoxelMeshVertexStructCursor.VertexFloatSize *
         4,
-      verticies
+      verticies,
     );
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, ibo);
+    gl.bufferSubData(
+      gl.COPY_WRITE_BUFFER,
+      allocation.indicesStart * 4,
+      indices,
+    );
+
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
   }
 
   render(mesh: SubMesh, alpha: boolean, effectiveMesh: AbstractMesh) {

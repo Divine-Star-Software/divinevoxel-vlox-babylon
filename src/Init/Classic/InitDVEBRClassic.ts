@@ -43,7 +43,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   //items
   DVEBRShaderStore.setShaderData(
     "dve_item",
-    ["world", "viewProjection", "dve_item_animation_size"],
+    ["world","view", "viewProjection", "dve_item_animation_size"],
     ["position", "normal", "textureIndex", "uv"],
     ["dve_item", "dve_item_animation"],
   );
@@ -55,7 +55,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   //voxel particles
   DVEBRShaderStore.setShaderData(
     "dve_voxel_particle",
-    ["world", "viewProjection", "dve_voxel_animation_size"],
+    ["world","view", "viewProjection", "dve_voxel_animation_size"],
     ["position", "normal", "uv", "color"],
     ["dve_voxel", "dve_voxel_animation"],
   );
@@ -98,10 +98,10 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
       "frag",
       material.includes("liquid")
         ? VoxelBaseShader.GetFragment({
-            main: VoxelBaseShader.DefaultLiquidFragmentMain(true),
+            main: VoxelBaseShader.DefaultLiquidFragmentMain(),
           })
         : VoxelBaseShader.GetFragment({
-            main: VoxelBaseShader.DefaultFragmentMain(true),
+            main: VoxelBaseShader.DefaultFragmentMain(),
           }),
     );
   }
