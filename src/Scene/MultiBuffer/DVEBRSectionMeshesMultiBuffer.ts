@@ -62,7 +62,7 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
         newMesh.doNotSerialize = true;
         newMesh.metadata = { section: true, buffer: null };
         //  newMesh.cullingStrategy = Mesh.CULLINGSTRATEGY_OPTIMISTIC_INCLUSION;
-        //  newMesh.alwaysSelectAsActiveMesh = true;
+        newMesh.alwaysSelectAsActiveMesh = true;
         const geometry = new Geometry(
           Geometry.RandomId(),
           this.scene,
@@ -75,25 +75,29 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
           new Vector3(0, 0, 0),
           new Vector3(0, 0, 0),
         );
+        geometry._boundingInfo.isLocked = true;
         geometry.useBoundingInfoFromGeometry = true;
         newMesh.doNotSyncBoundingInfo = true;
-        newMesh.setEnabled(false);
+        newMesh.setEnabled(true);
+        newMesh.isVisible = true;
         newMesh.freezeWorldMatrix();
         mesh = newMesh;
+
       }
 
       mesh.unfreezeWorldMatrix();
       mesh.position.set(location[1], location[2], location[3]);
+
       mesh.computeWorldMatrix();
       if (mesh.metadata.buffer && mesh.metadata.buffer instanceof Buffer) {
         const buffer = mesh.metadata.buffer as Buffer;
-        for (const bufferKind of mesh.getVerticesDataKinds()) {
+        /*     for (const bufferKind of mesh.getVerticesDataKinds()) {
           mesh.geometry!.removeVerticesData(bufferKind);
-        }
+       
         mesh.geometry!.releaseForMesh(mesh);
+         } */
         buffer.dispose();
       }
-
       mesh.metadata.buffer = DVEBRVoxelMesh.UpdateVertexDataBuffers(
         mesh,
         this.engine,
@@ -111,12 +115,11 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
       max.x = maxBounds[0];
       max.y = maxBounds[1];
       max.z = maxBounds[2];
-
+      mesh.geometry!._boundingInfo!.isLocked = false;
       mesh.getBoundingInfo().reConstruct(min, max, mesh.getWorldMatrix());
+      mesh.geometry!._boundingInfo!.isLocked = true;
       mesh.freezeWorldMatrix();
-      this.scene.freezeActiveMeshes(true);
       mesh.material = this.renderer.materials.get(subMeshMaterial)!._material;
-
       section.meshes.set(subMeshMaterial, mesh);
 
       if (!EngineSettings.settings.rendererSettings.cpuBound) {

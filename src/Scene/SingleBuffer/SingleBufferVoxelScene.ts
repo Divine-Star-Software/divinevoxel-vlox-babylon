@@ -27,8 +27,7 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     const multiMaterial = new MultiMaterial("Voxel Scene Material", scene);
     for (let i = 0; i < VoxelLUT.material._palette.length; i++) {
       multiMaterial.subMaterials.push(
-        this.renderer.materials.get(VoxelLUT.material._palette[i])!
-          ._material
+        this.renderer.materials.get(VoxelLUT.material._palette[i])!._material,
       );
     }
 
@@ -45,7 +44,6 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     return mesh;
   }
 
-
   private _disposeBufferMesh(bufferMesh: BufferMesh) {
     const idx = this._meshBuffers.indexOf(bufferMesh);
     if (idx === -1) return;
@@ -61,7 +59,6 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     (mesh as any).mesh = null;
     bufferMesh.deallocate(mesh.allocation);
 
-
     if (bufferMesh._allocations === 0 && this._meshBuffers.length > 1) {
       this._disposeBufferMesh(bufferMesh);
     }
@@ -69,9 +66,11 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     return null;
   }
 
+  _beforeRender: [BufferAllocation, Float32Array<any>, Uint32Array<any>][] = [];
+
   updateMesh(
     subBufferMesh: SubBufferMesh,
-    data: CompactedMeshData
+    data: CompactedMeshData,
   ): SubBufferMesh | null {
     const bufferMesh = subBufferMesh.allocation._bufferMesh;
     if (
@@ -99,11 +98,12 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     for (let i = 0; i < data.indices.length; i++) {
       data.indices[i] += subBufferMesh.verticesStart;
     }
-    bufferMesh.writeBuffers(
+
+    this._beforeRender.push([
       subBufferMesh.allocation,
       data.verticies,
-      data.indices
-    );
+      data.indices,
+    ]);
 
     return subBufferMesh;
   }
@@ -112,20 +112,20 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     data: CompactedMeshData,
     x: number,
     y: number,
-    z: number
+    z: number,
   ): SubBufferMesh {
     let allocation: BufferAllocation | null = null;
     for (let i = 0; i < this._meshBuffers.length; i++) {
       allocation = this._meshBuffers[i].allocate(
         data.vertexCount,
-        data.indexCount
+        data.indexCount,
       );
       if (allocation) break;
     }
     if (!allocation) {
       allocation = this._addBufferMesh().allocate(
         data.vertexCount,
-        data.indexCount
+        data.indexCount,
       );
       if (!allocation) {
         throw new Error(`Error making new buffer mesh and allocating`);
@@ -152,7 +152,7 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
       subBufferMesh.indicesCount,
       bufferMesh,
       undefined,
-      false
+      false,
       // false
     );
 
@@ -191,45 +191,17 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     bufferMesh.writeBuffers(
       subBufferMesh.allocation,
       data.verticies,
-      data.indices
+      data.indices,
     );
     return subBufferMesh;
   }
 
   beforRender() {
-    const camera = this.renderer.scene.activeCamera;
-    if (!camera) return;
-
-    for (const [, dimension] of MeshRegister._dimensions) {
-      for (const [, sector] of dimension) {
-        min.set(sector.position[0], sector.position[1], sector.position[2]);
-        max.set(
-          sector.position[0] + WorldSpaces.sector.bounds.x,
-          sector.position[1] + WorldSpaces.sector.bounds.y,
-          sector.position[2] + WorldSpaces.sector.bounds.z
-        );
-        boundingBox.reConstruct(min, max);
-        const sectorVisible = camera.isInFrustum(boundingBox);
-        for (const section of sector.sections) {
-          if (!section) continue;
-          for (const [key, mesh] of section.meshes as Map<
-            string,
-            SubBufferMesh
-          >) {
-            if (!mesh.mesh) continue;
-            if (!sectorVisible) {
-              if (mesh.isEnabled()) mesh.setEnabled(false);
-              continue;
-            }
-            if (camera.isInFrustum(mesh.mesh.getBoundingInfo())) {
-              if (!mesh.isEnabled()) mesh.setEnabled(true);
-            } else {
-              if (mesh.isEnabled()) mesh.setEnabled(false);
-            }
-          }
-        }
-      }
-    }
+    if (!this._beforeRender.length) return;
+    // while (this._beforeRender.length) {
+    const [allocation, verticies, indices] = this._beforeRender.shift()!;
+    allocation._bufferMesh.writeBuffers(allocation, verticies, indices);
+    // }
   }
 
   render() {

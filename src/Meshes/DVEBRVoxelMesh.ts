@@ -6,6 +6,7 @@ import { CompactSubMesh } from "@divinevoxel/vlox/Mesher/Types/Mesher.types";
 import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/VoxelMeshVertexStructCursor";
 import { Scene } from "@babylonjs/core/scene";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
+import { Geometry, SubMesh, Vector3 } from "@babylonjs/core";
 export class DVEBRVoxelMesh {
   static CreateSubMesh(data: CompactSubMesh, scene: Scene, engine: Engine) {
     const [materialId, vertexBuffer, indexBuffer] = data;
@@ -20,6 +21,41 @@ export class DVEBRVoxelMesh {
     this.UpdateVertexDataBuffers(mesh, engine, data[1], data[2]);
   }
 
+  static set(parentMesh: any, geo: any, buffer: VertexBuffer) {
+    if (geo instanceof Mesh) {
+      return geo.setVerticesBuffer(buffer);
+    }
+    if (buffer._buffer) {
+      buffer._buffer._increaseReferences();
+    }
+    geo._vertexBuffers[buffer.getKind()] = buffer;
+    const kind = buffer.getKind();
+    const meshes = geo._meshes;
+    const numOfMeshes = meshes.length;
+
+    if (kind === VertexBuffer.PositionKind) {
+      geo._totalVertices = buffer._maxVerticesCount;
+      for (let index = 0; index < numOfMeshes; index++) {
+        const mesh = meshes[index];
+
+        mesh.releaseSubMeshes();
+        new SubMesh(
+          0,
+          0,
+          geo._totalVertices,
+          0,
+          geo.getTotalIndices(),
+          parentMesh,
+          parentMesh,
+          false,
+        );
+        mesh.computeWorldMatrix(true);
+        mesh.synchronizeInstances();
+      }
+    }
+
+    geo._notifyUpdate(kind);
+  }
   static UpdateVertexDataBuffers(
     mesh: Mesh,
     engine: Engine,
@@ -28,53 +64,69 @@ export class DVEBRVoxelMesh {
   ) {
     const GL_UNSIGNED_INT = 5125;
 
-    const buffer = new Buffer(engine, vertices, false);
+    const verticesBuffer = new Buffer(engine, vertices, false);
+
     const geo = mesh.geometry ? mesh.geometry : mesh;
-    geo.setVerticesBuffer(
+    this.set(
+      mesh,
+      geo,
       new VertexBuffer(
         engine,
-        buffer,
+        verticesBuffer,
         VertexBuffer.PositionKind,
         false,
         undefined,
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.PositionOffset,
-        3,
+        4,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
       ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
         engine,
-        buffer,
+        verticesBuffer,
         VertexBuffer.NormalKind,
         false,
         undefined,
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.NormalOffset,
-        3,
+        4,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
       ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
         engine,
-        buffer,
+        verticesBuffer,
         "textureIndex",
         false,
         undefined,
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.TextureIndexOffset,
-        3,
+        4,
         GL_UNSIGNED_INT,
+        false,
+        undefined,
+        undefined,
         false,
       ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
         engine,
-        buffer,
+        verticesBuffer,
         "uv",
         false,
         undefined,
@@ -82,25 +134,35 @@ export class DVEBRVoxelMesh {
         undefined,
         VoxelMeshVertexStructCursor.UVOffset,
         2,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
       ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
         engine,
-        buffer,
+        verticesBuffer,
         "color",
         false,
         undefined,
         VoxelMeshVertexStructCursor.VertexFloatSize,
         undefined,
         VoxelMeshVertexStructCursor.ColorOffset,
-        3,
+        4,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
       ),
     );
     geo.setVerticesBuffer(
       new VertexBuffer(
         engine,
-        buffer,
+        verticesBuffer,
         "voxelData",
         false,
         undefined,
@@ -110,10 +172,13 @@ export class DVEBRVoxelMesh {
         4,
         GL_UNSIGNED_INT,
         false,
+        undefined,
+        undefined,
+        false,
       ),
     );
     geo.setIndices(indices);
-    return buffer;
+    return verticesBuffer;
   }
   /*   static UpdateVertexDataO(mesh: Mesh, engine: Engine, data: CompactSubMesh) {
  

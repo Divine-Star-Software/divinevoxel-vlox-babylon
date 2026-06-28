@@ -38,33 +38,38 @@ export class DVEBabylonRenderer extends DVERenderer {
         data.scene,
         this.engine,
         this,
-        new SingleBufferVoxelScene(this, this.sceneOptions)
+        new SingleBufferVoxelScene(this, this.sceneOptions),
       );
     } else {
       this.sectorMeshes = new DVEBRSectionMeshesMultiBuffer(
         data.scene,
         this.engine,
-        this
+        this,
       );
     }
 
     this.meshCuller.init(
       this.scene,
-      EngineSettings.settings.rendererSettings.bufferMode
+      EngineSettings.settings.rendererSettings.bufferMode,
     );
     if (!DVEBabylonRenderer.instance) DVEBabylonRenderer.instance = this;
 
     return DVEBabylonRenderer.instance;
   }
 
+  beforeRender() {
+    if (this.sectorMeshes instanceof DVEBRSectionMeshesSingleBuffer) {
+      this.sectorMeshes.voxelScene.beforRender();
+    } 
+  }
   async init(dver: DivineVoxelEngineRender) {
     if (this.sectorMeshes instanceof DVEBRSectionMeshesSingleBuffer) {
       const sectorMeshes = this.sectorMeshes as DVEBRSectionMeshesSingleBuffer;
       sectorMeshes.voxelScene.init(this.scene);
 
-      this.scene.registerBeforeRender(() => {
+     /*  this.scene.onBeforeAnimationsObservable.add(() => {
         sectorMeshes.voxelScene.beforRender();
-      });
+      }); */
     }
   }
 }

@@ -34,6 +34,10 @@ export class BufferMesh extends Mesh {
   _verticesAllocator: BufferAllocator;
   _indices: DataBuffer;
   _indicesAllocator: BufferAllocator;
+  _vertexStagingBufferByteLength = 10 * 1024 * 1024;
+  _indexStagingBufferByteLength = 10 * 1024 * 1024;
+  _vertexStagingBuffer: any;
+  _indexStagingBuffer: any;
 
   constructor(
     public voxelScene: SingleBufferVoxelScene,
@@ -86,14 +90,33 @@ export class BufferMesh extends Mesh {
 
     const gl = engine._gl!;
 
+    this._vertexStagingBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.COPY_READ_BUFFER, this._vertexStagingBuffer);
+    gl.bufferData(
+      gl.COPY_READ_BUFFER,
+      this._vertexStagingBufferByteLength,
+      gl.DYNAMIC_DRAW,
+    );
+    gl.bindBuffer(gl.COPY_READ_BUFFER, null);
+
+    this._indexStagingBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexStagingBuffer);
+    gl.bufferData(
+      gl.ELEMENT_ARRAY_BUFFER,
+      this._indexStagingBufferByteLength,
+      gl.DYNAMIC_DRAW,
+    );
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
     const vboHandle = verticesBuffer.getBuffer()!;
-    gl.bindBuffer(gl.ARRAY_BUFFER, vboHandle.underlyingResource);
-    gl.bufferData(gl.ARRAY_BUFFER, verteicesByteSize, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    (vboHandle as any)._buffer = gl.createBuffer();
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, vboHandle.underlyingResource);
+    gl.bufferData(gl.COPY_WRITE_BUFFER, verteicesByteSize, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
     vboHandle.capacity = verteicesByteSize;
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indices.underlyingResource);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indicesByteSize, gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indicesByteSize, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     this._indices.capacity = indicesByteSize;
 
@@ -274,34 +297,100 @@ export class BufferMesh extends Mesh {
     this._allocations--;
   }
 
-  writeBuffers(
+  beforeWriteBuffer() {
+    const gl = this.engine._gl!;
+    const vbo = this._vertices.getBuffer()!.underlyingResource;
+    const ibo = this._indices.underlyingResource;
+    console.log("before");
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, vbo);
+  }
+  afterWriteBuffer() {
+    const gl = this.engine._gl!;
+    gl.bindBuffer(gl.COPY_READ_BUFFER, null);
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+  }
+
+  writeBuffersO(
     allocation: BufferAllocation,
     verticies: Float32Array,
     indices: Uint32Array,
   ) {
     const gl = this.engine._gl!;
-
     const vbo = this._vertices.getBuffer()!.underlyingResource;
     const ibo = this._indices.underlyingResource;
 
-    gl.bindBuffer(gl.COPY_WRITE_BUFFER, vbo);
-    gl.bufferSubData(
+    if (verticies.byteLength > this._vertexStagingBufferByteLength) {
+      console.warn(
+        "vertex staging buffer to small",
+        this._vertexStagingBufferByteLength,
+        verticies.byteLength,
+      );
+    }
+    if (indices.byteLength > this._indexStagingBufferByteLength) {
+      console.warn(
+        "index staging buffer to small",
+        this._indexStagingBufferByteLength,
+        indices.byteLength,
+      );
+    }
+
+    gl.bindBuffer(gl.COPY_READ_BUFFER, this._vertexStagingBuffer);
+    gl.bufferSubData(gl.COPY_READ_BUFFER, 0, verticies);
+
+    gl.copyBufferSubData(
+      gl.COPY_READ_BUFFER,
       gl.COPY_WRITE_BUFFER,
+      0,
       allocation.verticesStart *
         VoxelMeshVertexStructCursor.VertexFloatSize *
         4,
-      verticies,
+      verticies.byteLength,
     );
 
-    gl.bindBuffer(gl.COPY_WRITE_BUFFER, ibo);
-    gl.bufferSubData(
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexStagingBuffer);
+    gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, indices);
+
+    gl.copyBufferSubData(
+      gl.ELEMENT_ARRAY_BUFFER,
       gl.COPY_WRITE_BUFFER,
+      0,
       allocation.indicesStart * 4,
-      indices,
+      indices.byteLength,
+    );
+  }
+
+ writeBuffers(
+    allocation: BufferAllocation,
+    verticies: Float32Array,
+    indices: Uint32Array
+  ) {
+    const gl = this.engine._gl!;
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indices.underlyingResource);
+    gl.bindBuffer(
+      gl.ARRAY_BUFFER,
+      this._vertices.getBuffer()!.underlyingResource
     );
 
-    gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
+    gl.bufferSubData(
+      gl.ELEMENT_ARRAY_BUFFER,
+      allocation.indicesStart * 4,
+      indices
+    );
+    gl.bufferSubData(
+      gl.ARRAY_BUFFER,
+      allocation.verticesStart *
+        VoxelMeshVertexStructCursor.VertexFloatSize *
+        4,
+      verticies
+    );
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
+
 
   render(mesh: SubMesh, alpha: boolean, effectiveMesh: AbstractMesh) {
     const active = this.voxelScene.active.get(mesh);

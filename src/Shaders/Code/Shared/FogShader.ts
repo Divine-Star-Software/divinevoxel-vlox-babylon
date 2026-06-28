@@ -1,5 +1,5 @@
 export class FogShaders {
-    static Functions = /* glsl */ `
+  static Functions = /* glsl */ `
 float ExponentialFog() {
     float fogDensity = scene_fogOptions.y;
     float fogCoeff = exp(-scene_fogOptions.w * fogDensity);
@@ -72,12 +72,10 @@ vec4 blendFog(vec3 sceneFogColor, vec4 base) {
     if(vDistance > scene_fogShadeOptions.z) {
         return vec4(sceneFogColor,1.);
     }
-    float blendFactor = smoothstep(scene_fogShadeOptions.y - 50., scene_fogShadeOptions.y, vDistance);
+    float blendFactor = smoothstep(scene_fogShadeOptions.y, scene_fogShadeOptions.z, vDistance);
     vec4 fogColor = vec4(mix(base.rgb, sceneFogColor, fogFactor),base.a);
     return mix(base,fogColor,blendFactor);
 }
 
       `;
-
-  }
-  
+}

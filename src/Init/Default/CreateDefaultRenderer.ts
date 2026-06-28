@@ -111,7 +111,7 @@ export async function CreateDefaultRenderer(
           id != "dve_flora_transparent"
             ? false
             : true,
-        backFaceCulling: id == "dve_liquid" || id == "dve_flora" ? false : true,
+        backFaceCulling: id == "dve_liquid" ? false : true,
         stencil: id == "dve_liquid" ? true : undefined,
         mipMapBias: -0.6,
       },

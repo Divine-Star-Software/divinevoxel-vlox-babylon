@@ -12,6 +12,14 @@ export class SubBufferMesh {
 
   private _enabled = false;
 
+  get isVisible() {
+    return this._enabled;
+  }
+
+  set isVisible(value: boolean) {
+    this.setEnabled(value);
+  }
+
   setEnabled(enabled: boolean) {
     this._enabled = enabled;
     if (enabled) {
@@ -25,6 +33,10 @@ export class SubBufferMesh {
   }
   isInFrustum(planes: any[]) {
     return this.mesh.isInFrustum(planes);
+  }
+
+  getBoundingInfo() {
+    return this.mesh.getBoundingInfo();
   }
 
   render() {

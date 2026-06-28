@@ -5,7 +5,7 @@ class UBOColor3 {
   constructor(
     private _color: Color3,
     private ubo: SceneUBO,
-    private propertyId: string
+    private propertyId: string,
   ) {}
   _update() {
     this.ubo._isDirty = true;
@@ -19,7 +19,7 @@ class UBOColor3 {
       (this.ubo.uniforms.get(this.propertyId) as Color3).set(
         this._color.r,
         this._color.g,
-        this._color.b
+        this._color.b,
       );
       this.ubo.dirtyUniforms.set(this.propertyId, true);
     }
@@ -176,7 +176,7 @@ class SkyOptions {
       this.color = new UBOColor3(
         this._options.ubo.skyColor,
         this._options.ubo,
-        "scene_skyColor"
+        "scene_skyColor",
       );
     }
   }
@@ -229,7 +229,20 @@ class FogOptions {
     this._options.ubo.fogShadeOptions.z = value;
     this._options.ubo.setFogShadeOptions(this._options.ubo.fogShadeOptions);
   }
-
+  get start() {
+    return this._options.ubo.fogShadeOptions.y;
+  }
+  set start(value: number) {
+    this._options.ubo.fogShadeOptions.y = value;
+    this._options.ubo.setFogShadeOptions(this._options.ubo.fogShadeOptions);
+  }
+  get end() {
+    return this._options.ubo.fogShadeOptions.z;
+  }
+  set end(value: number) {
+    this._options.ubo.fogShadeOptions.z = value;
+    this._options.ubo.setFogShadeOptions(this._options.ubo.fogShadeOptions);
+  }
   get skyShade() {
     return this._options.ubo.fogShadeOptions.x == 1;
   }
@@ -242,7 +255,7 @@ class FogOptions {
       this.color = new UBOColor3(
         this._options.ubo.fogColor,
         this._options.ubo,
-        "scene_fogColor"
+        "scene_fogColor",
       );
     }
   }
@@ -263,7 +276,10 @@ export class SceneOptions {
   effects: EffectOptions;
   ubo: SceneUBO;
 
-  constructor(public scene: Scene, postponeUBOCreation = false) {
+  constructor(
+    public scene: Scene,
+    postponeUBOCreation = false,
+  ) {
     if (!postponeUBOCreation) {
       this.ubo = new SceneUBO(SceneUBO.Create(scene));
     }
@@ -279,11 +295,11 @@ export class SceneOptions {
     newOptions.ubo = this.ubo.clone(scene);
     newOptions.sky.color = this.sky.color.clone(
       newOptions.ubo.skyColor,
-      newOptions.ubo
+      newOptions.ubo,
     );
     newOptions.fog.color = this.fog.color.clone(
       newOptions.ubo.fogColor,
-      newOptions.ubo
+      newOptions.ubo,
     );
 
     return newOptions;
