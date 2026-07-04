@@ -1,32 +1,22 @@
-import { DVEBRShaderStore } from "../../Shaders/DVEBRShaderStore";
-import { VoxelBaseShader } from "../../Shaders/Code/VoxelBaseShader";
-import { ItemShader } from "../../Shaders/Code/ItemShader";
-import { VoxelParticleShader } from "../../Shaders/Code/VoxelParticleShader";
 import { DVEBRClassicMaterial } from "../../Matereials/Classic/DVEBRClassicMaterial";
-import { DVEBRDefaultMaterialBaseData } from "../../Matereials/Types/DVEBRDefaultMaterial.types";
+import { DVEBRDefaultMaterialBaseData } from "../../Matereials/DVEBRMaterial.types";
 import {
   CreateDefaultRenderer,
   CreateTextures,
+  RegisterDefaultShaders,
 } from "../Default/CreateDefaultRenderer";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 import { SceneUBO } from "../../Scene/SceneUBO";
+import { Camera } from "@babylonjs/core/Cameras/camera";
 export type DVEBRClassicData = DVEBRDefaultMaterialBaseData & {
   doSun?: boolean;
   doRGB?: boolean;
   doAO?: boolean;
 } & {
+  camera?: Camera;
   getProgress?: (progress: WorkItemProgress) => void;
 };
-const defaultMaterials = [
-  "dve_glow",
-  "dve_flora",
-  "dve_flora_transparent",
-  "dve_solid",
-  "dve_transparent",
-  "dve_liquid",
-];
-
 export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   if (initData.textureSize) {
     EngineSettings.settings.rendererSettings.textureSize = [
@@ -36,79 +26,14 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   const progress = new WorkItemProgress();
   if (initData.getProgress) initData.getProgress(progress);
   progress.startTask("Init Classic Renderer");
+  RegisterDefaultShaders();
   await CreateTextures(initData.scene, initData.textureData, progress);
 
   const engine = initData.scene.getEngine();
   SceneUBO.UniformBufferSuppourted = engine.supportsUniformBuffers;
-  //items
-  DVEBRShaderStore.setShaderData(
-    "dve_item",
-    ["world","view", "viewProjection", "dve_item_animation_size"],
-    ["position", "normal", "textureIndex", "uv"],
-    ["dve_item", "dve_item_animation"],
-  );
-
-  DVEBRShaderStore.storeShader("dve_item", "vertex", ItemShader.GetVertex());
-
-  DVEBRShaderStore.storeShader("dve_item", "frag", ItemShader.GetFragment());
-
-  //voxel particles
-  DVEBRShaderStore.setShaderData(
-    "dve_voxel_particle",
-    ["world","view", "viewProjection", "dve_voxel_animation_size"],
-    ["position", "normal", "uv", "color"],
-    ["dve_voxel", "dve_voxel_animation"],
-  );
-
-  DVEBRShaderStore.storeShader(
-    "dve_voxel_particle",
-    "vertex",
-    VoxelParticleShader.GetVertex(),
-  );
-
-  DVEBRShaderStore.storeShader(
-    "dve_voxel_particle",
-    "frag",
-    VoxelParticleShader.GetFragment(),
-  );
-
-  for (const material of defaultMaterials) {
-    DVEBRShaderStore.setShaderData(
-      material,
-      [
-        "world",
-        "viewProjection",
-        "worldOrigin",
-        "cameraPosition",
-        "dve_voxel_animation_size",
-      ],
-      ["position", "normal", "textureIndex", "uv", "color", "voxelData"],
-      ["dve_voxel", "dve_voxel_animation"],
-    );
-
-    DVEBRShaderStore.storeShader(
-      material,
-      "vertex",
-      VoxelBaseShader.GetVertex({
-        doAO: true,
-      }),
-    );
-    DVEBRShaderStore.storeShader(
-      material,
-      "frag",
-      material.includes("liquid")
-        ? VoxelBaseShader.GetFragment({
-            main: VoxelBaseShader.DefaultLiquidFragmentMain(),
-          })
-        : VoxelBaseShader.GetFragment({
-            main: VoxelBaseShader.DefaultFragmentMain(),
-          }),
-    );
-  }
 
   const renderer = await CreateDefaultRenderer({
     progress,
-    afterCreate: async () => {},
     createMaterial: (renderer, scene, matData) => {
       const newMat = new DVEBRClassicMaterial(
         renderer.sceneOptions,

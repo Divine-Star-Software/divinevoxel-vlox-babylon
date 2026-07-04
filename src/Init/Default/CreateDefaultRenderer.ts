@@ -1,8 +1,9 @@
+import { DVEBRShaderStore } from "../../Shaders/DVEBRShaderStore";
 import { DVEBabylonRenderer } from "../../Renderer/DVEBabylonRenderer.js";
 import {
   DVEBRDefaultMaterialBaseData,
   NodeSubstanceData,
-} from "../../Matereials/Types/DVEBRDefaultMaterial.types.js";
+} from "../../Matereials/DVEBRMaterial.types.js";
 
 import type { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
@@ -19,8 +20,12 @@ import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress.js";
 import "@babylonjs/core/Animations/animatable";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings.js";
 import { SceneUBO } from "../../Scene/SceneUBO.js";
+import { VoxelBaseShader } from "../../Shaders/Code/VoxelBaseShader";
+import { ItemShader } from "../../Shaders/Code/ItemShader";
+import { VoxelParticleShader } from "../../Shaders/Code/VoxelParticleShader";
+import { VoxelPBRShader } from "../../Shaders/Code/VoxelPBRShader";
 
-const defaultSubstances = [
+const defaultMaterials = [
   "dve_glow",
   "dve_flora",
   "dve_flora_transparent",
@@ -28,6 +33,83 @@ const defaultSubstances = [
   "dve_transparent",
   "dve_liquid",
 ];
+
+export function RegisterDefaultShaders() {
+  //items
+  DVEBRShaderStore.setShaderData(
+    "dve_item",
+    ["world", "view", "viewProjection", "dve_item_animation_size"],
+    ["position", "normal", "textureIndex", "uv"],
+    ["dve_item", "dve_item_animation"],
+  );
+
+  DVEBRShaderStore.storeShader("dve_item", "vertex", ItemShader.GetVertex());
+
+  DVEBRShaderStore.storeShader("dve_item", "frag", ItemShader.GetFragment());
+
+  //voxel particles
+  DVEBRShaderStore.setShaderData(
+    "dve_voxel_particle",
+    ["world", "view", "viewProjection", "dve_voxel_animation_size"],
+    ["position", "normal", "uv", "color"],
+    ["dve_voxel", "dve_voxel_animation"],
+  );
+
+  DVEBRShaderStore.storeShader(
+    "dve_voxel_particle",
+    "vertex",
+    VoxelParticleShader.GetVertex(),
+  );
+
+  DVEBRShaderStore.storeShader(
+    "dve_voxel_particle",
+    "frag",
+    VoxelParticleShader.GetFragment(),
+  );
+
+  for (const material of defaultMaterials) {
+    DVEBRShaderStore.setShaderData(
+      material,
+      [
+        "world",
+        "viewProjection",
+        "worldOrigin",
+        "cameraPosition",
+        "dve_voxel_animation_size",
+      ],
+      ["position", "normal", "textureIndex", "uv", "color", "voxelData"],
+      ["dve_voxel", "dve_voxel_animation"],
+      {
+        vertexUpdates: material.includes("liquid")
+          ? VoxelPBRShader.GetLiquidVertexUpdates({ name: material })
+          : VoxelPBRShader.GetVertexUpdates({ name: material }),
+        fragmentUpdates: VoxelPBRShader.GetFragmentUpdates({
+          name: material,
+          doAO: !material.includes("liquid"),
+        }),
+      },
+    );
+
+    DVEBRShaderStore.storeShader(
+      material,
+      "vertex",
+      VoxelBaseShader.GetVertex({
+        doAO: true,
+      }),
+    );
+    DVEBRShaderStore.storeShader(
+      material,
+      "frag",
+      material.includes("liquid")
+        ? VoxelBaseShader.GetFragment({
+            main: VoxelBaseShader.DefaultLiquidFragmentMain(),
+          })
+        : VoxelBaseShader.GetFragment({
+            main: VoxelBaseShader.DefaultFragmentMain(),
+          }),
+    );
+  }
+}
 
 export async function CreateTextures(
   scene: Scene,
@@ -56,7 +138,6 @@ export async function CreateTextures(
     animatedTexture.build();
     animatedTexture.shaderTexture = new RawTexture(
       animatedTexture._buffer,
-
       animatedTexture._size,
       animatedTexture._size,
       Engine.TEXTUREFORMAT_RED_INTEGER,
@@ -82,7 +163,6 @@ export async function CreateDefaultRenderer(
       scene: Scene,
       matData: NodeMaterialData,
     ) => MaterialInterface;
-    afterCreate?: () => Promise<void>;
     progress: WorkItemProgress;
   },
 ): Promise<DVEBabylonRenderer> {
@@ -95,7 +175,7 @@ export async function CreateDefaultRenderer(
         scene,
       });
 
-  const DefaultSubstances: NodeSubstanceData[] = defaultSubstances.map((id) => {
+  const DefaultSubstances: NodeSubstanceData[] = defaultMaterials.map((id) => {
     return {
       id,
       material: {
@@ -111,9 +191,21 @@ export async function CreateDefaultRenderer(
           id != "dve_flora_transparent"
             ? false
             : true,
+        alpha: id == "dve_liquid" ? 0.7 : undefined,
         backFaceCulling: id == "dve_liquid" ? false : true,
+        forceDepthWrite:
+          id == "dve_transparent" || id == "dve_flora_transparent"
+            ? true
+            : false,
         stencil: id == "dve_liquid" ? true : undefined,
+        separateCullingPass: id == "dve_liquid" ? true : undefined,
         mipMapBias: -0.6,
+        pbr: {
+          roughness: id == "dve_liquid" ? 0 : 1,
+          metallic: id == "dve_liquid" ? 0.5 : 0,
+          reflectionColor: id == "dve_liquid" ? [0.1, 0.1, 0.1] : [0, 0, 0],
+          reflectivityColor: id == "dve_liquid" ? [1, 1, 1] : undefined,
+        },
       },
       textureType: "dve_voxel",
       shaderId: id,
@@ -193,7 +285,6 @@ export async function CreateDefaultRenderer(
   });
 
   InitDefaultEffects();
-  initData.afterCreate && (await initData.afterCreate());
   progress.completeWorkItems(4);
   progress.setStatus("Done");
   await progress.wait(100);

@@ -5,7 +5,7 @@ import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial.js";
 import { TextureManager } from "@divinevoxel/vlox/Textures/TextureManager.js";
 import { DVEBRShaderStore } from "../../Shaders/DVEBRShaderStore.js";
 import { ImageArrayTexture } from "../../Textures/ImageArrayTexture.js";
-import { MaterialData, MaterialInterface } from "../MaterialInterface.js";
+import { MaterialInterface } from "../MaterialInterface.js";
 import { SceneOptions } from "../../Scene/SceneOptions.js";
 import {
   Matrix,
@@ -19,6 +19,9 @@ type MatData = MaterialData<{
   material?: ShaderMaterial;
   textures?: Map<string, ImageArrayTexture | Texture>;
 }>;
+
+import { MaterialData } from "../DVEBRMaterial.types";
+
 
 export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
   scene: Scene;
@@ -97,16 +100,6 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
 
     if (data.backFaceCulling !== undefined) {
       shaderMaterial.backFaceCulling = data.backFaceCulling;
-    }
-
-    if (this.id.includes("dve_item")) {
-      // shaderMaterial.forceDepthWrite = true;
-      shaderMaterial.backFaceCulling = true;
-    }
-
-    if (this.id.includes("transparent")) {
-      shaderMaterial.forceDepthWrite = true;
-      shaderMaterial.backFaceCulling = true;
     }
 
     if (this.data.stencil) {

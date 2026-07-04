@@ -40,6 +40,7 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
 
   returnMesh(mesh: Mesh) {
     mesh.dispose();
+    this.renderer.observers.meshDisposed.notifyObservers(mesh);
   }
 
   updateVertexData(section: SectionMesh, data: CompactedSectionVoxelMesh) {
@@ -82,7 +83,7 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
         newMesh.isVisible = true;
         newMesh.freezeWorldMatrix();
         mesh = newMesh;
-
+        this.renderer.observers.meshCreated.notifyObservers(newMesh);
       }
 
       mesh.unfreezeWorldMatrix();

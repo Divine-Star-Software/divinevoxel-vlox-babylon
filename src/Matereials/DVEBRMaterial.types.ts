@@ -19,16 +19,19 @@ export type NodeMaterialOptions = {
   hasEffects?: boolean;
   backFaceCulling?: boolean;
   stencil?: boolean;
+  alpha?: number;
   forceDepthWrite?: boolean;
+  separateCullingPass?: boolean;
+  pbr?: {
+    roughness?: number;
+    metallic?: number;
+    reflectionColor?: Vec3Array;
+    reflectivityColor?: Vec3Array;
+  };
 };
 
 export type NodeMeshData = {
   id: string;
-  type?: string;
-} & NodeMeshOptions;
-
-export type NodeMeshOptions = {
-  boundingBoxMaxSize: Vec3Array;
   type?: string;
 };
 
@@ -37,6 +40,15 @@ export type NodeSubstanceData = {
   shaderId: string;
   textureType: string;
   material: NodeMaterialOptions;
-  mesh: NodeMeshOptions;
   textures?: Record<string, Texture>;
 };
+
+export type MaterialData<Data extends object = any> = {
+  scene: Scene;
+  uniforms?: string[];
+  attributes?: string[];
+  samplers?: string[];
+  defines?: string[];
+  data: Data;
+  hasEffects?: boolean;
+} & NodeMaterialOptions;

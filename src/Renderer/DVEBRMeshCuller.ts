@@ -5,16 +5,28 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { MeshRegister } from "@divinevoxel/vlox/Renderer/MeshRegister";
 import { WorldSpaces } from "@divinevoxel/vlox/World/WorldSpaces";
 import { Constants } from "@babylonjs/core/Engines/constants";
+import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { Frustum } from "@babylonjs/core/Maths/math.frustum";
+import { Plane } from "@babylonjs/core/Maths/math.plane";
+
 const min = new Vector3();
 const max = new Vector3(16, 16, 16);
 const boundingBox = new BoundingBox(min, max);
-const sceneMeshes: Mesh[] = [];
 
-function CullSectors(scene: Scene) {
+function CullSectors(scene: Scene, light: DirectionalLight | null) {
   const camera = scene.activeCamera;
   if (!camera) return;
 
   camera._updateFrustumPlanes();
+
+  let lightFrustumPlanes: Plane[] | null = null;
+  const shadowGenerator = light?.getShadowGenerator();
+  if (shadowGenerator) {
+    lightFrustumPlanes = Frustum.GetPlanes(
+      shadowGenerator.getTransformMatrix(),
+    );
+  }
+
   for (const [, dimension] of MeshRegister._dimensions) {
     for (const [, sector] of dimension) {
       min.set(sector.position[0], sector.position[1], sector.position[2]);
@@ -24,8 +36,9 @@ function CullSectors(scene: Scene) {
         sector.position[2] + WorldSpaces.sector.bounds.z,
       );
       boundingBox.reConstruct(min, max);
-      const sectorVisible = boundingBox.isInFrustum(camera._frustumPlanes);
-
+      const sectorVisible =
+        boundingBox.isInFrustum(camera._frustumPlanes) ||
+        (lightFrustumPlanes && boundingBox.isInFrustum(lightFrustumPlanes));
       for (const section of sector.sections) {
         if (!section) {
           continue;
@@ -35,8 +48,11 @@ function CullSectors(scene: Scene) {
             mesh.isVisible = false;
             continue;
           }
-          if (mesh.getBoundingInfo().isInFrustum(camera._frustumPlanes)) {
-            sceneMeshes.push(mesh);
+          if (
+            mesh.getBoundingInfo().isInFrustum(camera._frustumPlanes) ||
+            (lightFrustumPlanes &&
+              mesh.getBoundingInfo().isInFrustum(lightFrustumPlanes))
+          ) {
             mesh.isVisible = true;
           } else {
             mesh.isVisible = false;
@@ -48,25 +64,19 @@ function CullSectors(scene: Scene) {
 }
 
 export class DVEBRMeshCuller {
+  light: DirectionalLight | null = null;
   init(scene: Scene, bufferMode: "single" | "multi") {
     //   scene.freezeActiveMeshes(true);
-    scene.registerBeforeRender(() => {});
+    scene.registerBeforeRender(() => {
+      CullSectors(scene, this.light);
+    });
 
     //   myManualActiveMeshes.push();
 
-    const orignal = (scene as any)._evaluateActiveMeshes.bind(scene);
+    /*     const orignal = (scene as any)._evaluateActiveMeshes.bind(scene);
     (scene as any)._evaluateActiveMeshes = () => {
       sceneMeshes.length = 0;
       CullSectors(scene);
-      /*  const activeMeshes = (scene as any)._activeMeshes;
-    
-      for (let i = 0; i < sceneMeshes.length; i++) {
-        activeMeshes.push(sceneMeshes[i]);
-        (scene as any).activeCamera._activeMeshes.push(sceneMeshes[i]);
-      }
-
-      activeMeshes.isFrozen = true;
- */
       const activeMeshes = (scene as any)._activeMeshes;
       activeMeshes.reset();
 
@@ -155,7 +165,6 @@ export class DVEBRMeshCuller {
         }
       }
 
-      //  orignal();
-    };
+    }; */
   }
 }

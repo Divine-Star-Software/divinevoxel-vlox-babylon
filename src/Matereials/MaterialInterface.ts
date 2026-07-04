@@ -3,21 +3,8 @@ import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { SceneOptions } from "../Scene/SceneOptions";
-export interface MaterialData<Data extends object = any> {
-  scene: Scene;
-  uniforms?: string[];
-  attributes?: string[];
-  samplers?: string[];
-  defines?: string[];
-  data: Data;
-  alphaTesting?: boolean;
-  alphaBlending?: boolean;
-  mipMapBias?: number;
-  hasEffects?: boolean;
-  backFaceCulling?: boolean;
-  stencil?: boolean;
-  forceDepthWrite?:boolean
-}
+import { MaterialData } from "./DVEBRMaterial.types";
+
 
 export interface MaterialInterface<
   Data extends MaterialData<any> = MaterialData<any>,
@@ -42,5 +29,5 @@ export interface MaterialInterface<
   setVector4(uniform: string, x: number, y: number, z: number, w: number): void;
   setMatrix<MatrixType = Matrix>(uniform: string, matrix: MatrixType): void;
   /**If UBO are not suppourted used to sync all uniforms to the material. */
-  syncUBO(forece?:boolean) : void;
+  syncUBO(forece?: boolean): void;
 }

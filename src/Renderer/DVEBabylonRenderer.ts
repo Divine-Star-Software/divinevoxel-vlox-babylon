@@ -5,14 +5,22 @@ import { DVEBRFOManager } from "./DVEBRFOManger";
 import { DivineVoxelEngineRender } from "@divinevoxel/vlox/Contexts/Render/DivineVoxelEngineRender.js";
 import type { Engine } from "@babylonjs/core/Engines/engine";
 import { DVEBRSectionMeshesSingleBuffer } from "../Scene/SingleBuffer/DVEBRSectionMeshesSingleBuffer";
-import { DVEBRMaterialRegister } from "../Matereials/DVEBRNodeMaterialsManager";
+import { DVEBRMaterialRegister } from "../Matereials/DVEBRMaterialRegister";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 import { SingleBufferVoxelScene } from "../Scene/SingleBuffer/SingleBufferVoxelScene";
 import { SceneOptions } from "../Scene/SceneOptions";
 import { DVEBRSectionMeshesMultiBuffer } from "../Scene/MultiBuffer/DVEBRSectionMeshesMultiBuffer";
+import { Observable } from "@babylonjs/core/Misc/observable";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 export interface DVEBabylonRendererInitData {
   scene: Scene;
 }
+
+class Observers {
+  meshCreated = new Observable<Mesh>();
+  meshDisposed = new Observable<Mesh>();
+}
+
 export class DVEBabylonRenderer extends DVERenderer {
   static instance: DVEBabylonRenderer;
   sectorMeshes: DVEBRSectionMeshesSingleBuffer | DVEBRSectionMeshesMultiBuffer;
@@ -24,6 +32,8 @@ export class DVEBabylonRenderer extends DVERenderer {
   materials = new DVEBRMaterialRegister();
 
   sceneOptions: SceneOptions;
+
+  observers = new Observers();
 
   constructor(data: DVEBabylonRendererInitData) {
     super();
@@ -60,14 +70,14 @@ export class DVEBabylonRenderer extends DVERenderer {
   beforeRender() {
     if (this.sectorMeshes instanceof DVEBRSectionMeshesSingleBuffer) {
       this.sectorMeshes.voxelScene.beforRender();
-    } 
+    }
   }
   async init(dver: DivineVoxelEngineRender) {
     if (this.sectorMeshes instanceof DVEBRSectionMeshesSingleBuffer) {
       const sectorMeshes = this.sectorMeshes as DVEBRSectionMeshesSingleBuffer;
       sectorMeshes.voxelScene.init(this.scene);
 
-     /*  this.scene.onBeforeAnimationsObservable.add(() => {
+      /*  this.scene.onBeforeAnimationsObservable.add(() => {
         sectorMeshes.voxelScene.beforRender();
       }); */
     }
