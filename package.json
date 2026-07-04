@@ -2,7 +2,7 @@
   "name": "@divinevoxel/vlox-babylon",
   "description": "BabylonJS renderer for @divinevoxel/vlox.",
   "main": "index.js",
-  "version": "0.0.63",
+  "version": "0.0.64",
   "types": "index.d.ts",
   "type": "module",
   "scripts": {
@@ -23,13 +23,8 @@
   },
   "peerDependencies": {
     "@amodx/math": "^0.0.18",
-    "@divinevoxel/vlox": "^0.0.84",
+    "@divinevoxel/vlox": "^0.0.85",
     "@babylonjs/core": ">=7.0.0"
-  },
-  "devDependencies": {
-    "@amodx/math": "^0.0.18",
-    "@divinevoxel/vlox": "^0.0.84",
-    "@babylonjs/core": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
