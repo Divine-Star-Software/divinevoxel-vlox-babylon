@@ -26,11 +26,10 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   const progress = new WorkItemProgress();
   if (initData.getProgress) initData.getProgress(progress);
   progress.startTask("Init Classic Renderer");
-  RegisterDefaultShaders();
-  await CreateTextures(initData.scene, initData.textureData, progress);
-
   const engine = initData.scene.getEngine();
   SceneUBO.UniformBufferSuppourted = engine.supportsUniformBuffers;
+  RegisterDefaultShaders();
+  await CreateTextures(initData.scene, initData.textureData, progress);
 
   const renderer = await CreateDefaultRenderer({
     progress,

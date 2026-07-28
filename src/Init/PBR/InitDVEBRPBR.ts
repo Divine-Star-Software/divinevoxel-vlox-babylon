@@ -8,6 +8,7 @@ import {
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 import { Camera } from "@babylonjs/core/Cameras/camera";
+import { SceneUBO } from "../../Scene/SceneUBO";
 export type DVEBRPBRData = DVEBRDefaultMaterialBaseData & {
   camera: Camera;
   getProgress?: (progress: WorkItemProgress) => void;
@@ -24,7 +25,8 @@ export default async function InitDVEPBR(initData: DVEBRPBRData) {
   if (initData.getProgress) initData.getProgress(progress);
   progress.startTask("Init PBR Renderer");
   const scene = initData.scene;
-
+  const engine = initData.scene.getEngine();
+  SceneUBO.UniformBufferSuppourted = engine.supportsUniformBuffers;
   RegisterDefaultShaders();
 
   await CreateTextures(scene, initData.textureData, progress);
