@@ -6,7 +6,8 @@ import { CompactSubMesh } from "@divinevoxel/vlox/Mesher/Types/Mesher.types";
 import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/VoxelMeshVertexStructCursor";
 import { Scene } from "@babylonjs/core/scene";
 import { DVEBabylonRenderer } from "../Renderer/DVEBabylonRenderer";
-import { Geometry, SubMesh, Vector3 } from "@babylonjs/core";
+
+import {  SubMesh } from "@babylonjs/core/Meshes/subMesh";
 export class DVEBRVoxelMesh {
   static CreateSubMesh(data: CompactSubMesh, scene: Scene, engine: Engine) {
     const [materialId, vertexBuffer, indexBuffer] = data;
