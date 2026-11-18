@@ -21,7 +21,7 @@ export class Quad {
           meterSize[1],
         ];
         const normals: number[] = [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0];
-        const indicies: number[] = [0, 1, 2, 2, 3, 0];
+        const indices: number[] = [0, 1, 2, 2, 3, 0];
         const uvs: number[] = [
           //1
           0, 0,
@@ -35,7 +35,7 @@ export class Quad {
     
         return {
           positions,
-          indicies,
+          indices,
           normals,
           uvs,
         };

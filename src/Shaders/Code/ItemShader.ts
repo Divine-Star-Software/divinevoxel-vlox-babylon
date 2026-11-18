@@ -12,7 +12,7 @@ precision highp usampler2D;
 precision highp sampler2DArray;
 
 ${
-  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+  SceneUBO.UniformBufferSupported ? SceneUBO.Define : SceneUBO.BaseDefine
 }     
      
 //texture animations
@@ -34,7 +34,7 @@ in vec2 uv;
 
 
 #ifdef INSTANCES
-//matricies
+//matrices
 in vec4 world0;
 in vec4 world1;
 in vec4 world2;
@@ -104,7 +104,7 @@ precision highp usampler2D;
 precision highp sampler2DArray;
 
 ${
-  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+  SceneUBO.UniformBufferSupported ? SceneUBO.Define : SceneUBO.BaseDefine
 }     
 
 //uniforms

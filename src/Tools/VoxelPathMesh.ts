@@ -64,6 +64,9 @@ export class VoxelPathSegmentMesh extends Mesh {
 
   update() {
     this._dirty = true;
+    //reset so multiple updates before a build do not stack geometry
+    this.positions = [];
+    this.indices = [];
     const thickness = 0.1;
     const start = [
       this.segment.start[0] + 0.5,
@@ -146,7 +149,7 @@ export class VoxelPathSegmentMesh extends Mesh {
     this.indices = [];
   }
   clear() {
-    for (const bufferKind in this.getVerticesDataKinds()) {
+    for (const bufferKind of this.getVerticesDataKinds()) {
       this.removeVerticesData(bufferKind);
     }
   }

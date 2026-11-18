@@ -5,7 +5,7 @@ import { DVEBRFOManager } from "./DVEBRFOManger";
 import { DivineVoxelEngineRender } from "@divinevoxel/vlox/Contexts/Render/DivineVoxelEngineRender.js";
 import type { Engine } from "@babylonjs/core/Engines/engine";
 import { DVEBRSectionMeshesSingleBuffer } from "../Scene/SingleBuffer/DVEBRSectionMeshesSingleBuffer";
-import { DVEBRMaterialRegister } from "../Matereials/DVEBRMaterialRegister";
+import { DVEBRMaterialRegister } from "../Materials/DVEBRMaterialRegister";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings";
 import { SingleBufferVoxelScene } from "../Scene/SingleBuffer/SingleBufferVoxelScene";
 import { SceneOptions } from "../Scene/SceneOptions";
@@ -69,7 +69,7 @@ export class DVEBabylonRenderer extends DVERenderer {
 
   beforeRender() {
     if (this.sectorMeshes instanceof DVEBRSectionMeshesSingleBuffer) {
-      this.sectorMeshes.voxelScene.beforRender();
+      this.sectorMeshes.voxelScene.beforeRender();
     }
   }
   async init(dver: DivineVoxelEngineRender) {
@@ -78,7 +78,7 @@ export class DVEBabylonRenderer extends DVERenderer {
       sectorMeshes.voxelScene.init(this.scene);
 
       /*  this.scene.onBeforeAnimationsObservable.add(() => {
-        sectorMeshes.voxelScene.beforRender();
+        sectorMeshes.voxelScene.beforeRender();
       }); */
     }
   }

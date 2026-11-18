@@ -8,22 +8,22 @@ export class GenMapTile {
   static Pool: GenMapTile[] = [];
 
   _instance: EntityInstance;
-  _dispoed = false;
+  _disposed = false;
 
   _sector: Sector | null = null;
-  dimensonId: number = 0;
+  dimensionId: number = 0;
   public position: Vec3Array = [0, 0, 0];
 
   constructor(public worldMap: GenMap) {}
 
-  set(dimensonId: number, x: number, y: number, z: number) {
+  set(dimensionId: number, x: number, y: number, z: number) {
     const instance = this.worldMap._instanceTool.getInstance();
     if (!instance) {
       console.warn(`Could not load tile instance for ${location}`);
     } else {
       this._instance = instance;
     }
-    this.dimensonId = dimensonId;
+    this.dimensionId = dimensionId;
 
     this.position[0] = x;
     this.position[1] = y;
@@ -36,13 +36,13 @@ export class GenMapTile {
   }
 
   update() {
-    if (this._dispoed) {
+    if (this._disposed) {
       this.setColor(1.0, 0.0, 0.0, 1.0);
       return;
     }
     if (!this._sector) {
       const sector = WorldRegister.sectors.get(
-        this.dimensonId,
+        this.dimensionId,
         this.position[0],this.position[1],this.position[2]
       );
       if (!sector) {
@@ -109,7 +109,7 @@ export class GenMapTile {
   
   dispose() {
     this._sector = null;
-    this._dispoed = true;
+    this._disposed = true;
     GenMapTile.Pool.push(this);
     this._instance.destroy();
   }

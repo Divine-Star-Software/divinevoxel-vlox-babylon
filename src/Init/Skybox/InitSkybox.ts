@@ -22,7 +22,7 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
     "viewProjection",
     "cameraPosition",
   ];
-  if (!sceneOptions.ubo.suppourtsUBO) {
+  if (!sceneOptions.ubo.supportsUBO) {
     uniforms.push(...sceneOptions.ubo.allUniformsNames);
   }
   const skyboxMat = new ShaderMaterial(
@@ -32,7 +32,7 @@ export function InitSkybox({ renderer }: { renderer: DVEBabylonRenderer }) {
     {
       uniforms,
       attributes: ["position", "normal"],
-      ...(sceneOptions.ubo.suppourtsUBO
+      ...(sceneOptions.ubo.supportsUBO
         ? {
             uniformBuffers: ["SceneOptions"],
           }

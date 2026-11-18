@@ -12,7 +12,7 @@ in vec2 uv;
 uniform mat4 worldViewProjection;
 uniform mat4 viewProjection;
 #ifdef INSTANCES
-//matricies
+//matrices
 in vec4 world0;
 in vec4 world1;
 in vec4 world2;

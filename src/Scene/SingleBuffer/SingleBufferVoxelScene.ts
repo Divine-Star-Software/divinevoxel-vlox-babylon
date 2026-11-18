@@ -32,7 +32,7 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     }
 
     scene.registerBeforeRender(() => {
-      this.render();
+      this.beforeRender();
     });
     this._material = multiMaterial;
     this._addBufferMesh();
@@ -101,7 +101,7 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
 
     this._beforeRender.push([
       subBufferMesh.allocation,
-      data.verticies,
+      data.vertices,
       data.indices,
     ]);
 
@@ -136,12 +136,12 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     subBufferMesh.allocation = allocation;
     const bufferMesh = allocation._bufferMesh;
     const totalVertices =
-      data.verticies.length / VoxelMeshVertexStructCursor.VertexFloatSize;
-    const totalIndicies = data.indices.length;
+      data.vertices.length / VoxelMeshVertexStructCursor.VertexFloatSize;
+    const totalIndices = data.indices.length;
 
     subBufferMesh.verticesCount = totalVertices;
     subBufferMesh.verticesStart = allocation.verticesStart;
-    subBufferMesh.indicesCount = totalIndicies;
+    subBufferMesh.indicesCount = totalIndices;
     subBufferMesh.indicesStart = allocation.indicesStart;
 
     subBufferMesh.mesh = new SubMesh(
@@ -190,27 +190,20 @@ export class SingleBufferVoxelScene extends VoxelSceneInterface<SubBufferMesh> {
     subBufferMesh.mesh.setBoundingInfo(new BoundingInfo(min, max));
     bufferMesh.writeBuffers(
       subBufferMesh.allocation,
-      data.verticies,
+      data.vertices,
       data.indices,
     );
     return subBufferMesh;
   }
 
-  beforRender() {
+  beforeRender() {
     if (!this._beforeRender.length) return;
-    // while (this._beforeRender.length) {
-    const [allocation, verticies, indices] = this._beforeRender.shift()!;
-    allocation._bufferMesh.writeBuffers(allocation, verticies, indices);
-    // }
+    for (let i = 0; i < this._beforeRender.length; i++) {
+      const [allocation, vertices, indices] = this._beforeRender[i];
+      allocation._bufferMesh.writeBuffers(allocation, vertices, indices);
+    }
+    this._beforeRender.length = 0;
   }
 
-  render() {
-    let totalMeshes = 0;
-    for (let i = 0; i < this._meshBuffers.length; i++) {
-      const mesh = this._meshBuffers[i];
-      for (const sub of mesh.subMeshes) {
-        totalMeshes++;
-      }
-    }
-  }
+  render() {}
 }

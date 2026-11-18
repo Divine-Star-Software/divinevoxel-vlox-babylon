@@ -6,7 +6,7 @@ import { Observable } from "@babylonjs/core/Misc/observable";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial.js";
 
 export class SceneUBO {
-  static UniformBufferSuppourted = true;
+  static UniformBufferSupported = true;
   static get BaseDefine() {
     let shader = "";
     for (const [key, value] of SceneUBO.DefaultUniforms) {
@@ -66,7 +66,7 @@ export class SceneUBO {
     ]
   );
   static Create(scene: Scene) {
-    if (!SceneUBO.UniformBufferSuppourted) return null;
+    if (!SceneUBO.UniformBufferSupported) return null;
     const buffer = new UniformBuffer(scene.getEngine());
     for (const [id, value] of this.DefaultUniforms) {
       if (typeof value == "number") {
@@ -138,8 +138,8 @@ export class SceneUBO {
       */
   levels = new Vector4();
   _isDirty = false;
-  get suppourtsUBO() {
-    return SceneUBO.UniformBufferSuppourted;
+  get supportsUBO() {
+    return SceneUBO.UniformBufferSupported;
   }
   get allUniformsNames() {
     return [...SceneUBO.DefaultUniforms.keys()];
@@ -345,7 +345,7 @@ export class SceneUBO {
   }
 
   syncToShaderMaterial(force = false, material: ShaderMaterial) {
-    if (this.suppourtsUBO) return;
+    if (this.supportsUBO) return;
     for (const [key, value] of this.uniforms) {
       if (!force && !this.dirtyUniforms.get(key)) continue;
       if (typeof value == "number") {

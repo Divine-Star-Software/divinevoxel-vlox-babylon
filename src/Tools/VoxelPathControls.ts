@@ -12,17 +12,16 @@ import { BoundingBox } from "@amodx/math/Geometry/Bounds/BoundingBox";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { RayProvider } from "@divinevoxel/vlox/Builder/RayProvider";
 import { VoxelSelectionHighlight } from "./VoxelSelectionHighlight";
-import { Mesh } from "@babylonjs/core";
 import { VoxelShapeTemplate } from "@divinevoxel/vlox/Templates/Shapes/VoxelShapeTemplate";
 import { BoxVoxelShapeSelection } from "@divinevoxel/vlox/Templates/Shapes/Selections/BoxVoxelShapeSelection";
 import { VoxelTemplateSelection } from "@divinevoxel/vlox/Templates/Selection/VoxelTemplateSelection";
-import { PathToolModes } from "@divinevoxel/vlox/Builder/Tools/Path/PahtTool";
+import { PathToolModes } from "@divinevoxel/vlox/Builder/Tools/Path/PathTool";
 const min = new Vector3();
 const max = new Vector3();
 const boundingBox = new BoundingBox(min, max);
 const voxelSize = Vector3Like.Create(1, 1, 1);
 class PointControl {
-  control: VoxelControls;
+  control: VoxelControls | null = null;
 
   get point() {
     return this.segment.getPoint(this.pointIndex);
@@ -103,6 +102,7 @@ class PointControl {
       });
     } else {
       if (this.control) this.control.dispose();
+      this.control = null;
     }
   }
 
@@ -249,7 +249,7 @@ export class VoxelPathControls {
   update(mouseDown: boolean) {
     this._mouseDown = mouseDown;
     if (this._activeControl) {
-      this._activeControl.control.update(
+      this._activeControl.control?.update(
         this._mouseDown,
         this.rayProvider.origin,
         this.rayProvider.direction,
@@ -265,8 +265,8 @@ export class VoxelPathControls {
       segmentMesh.update();
       const controls = this._controlMap.get(segment);
       if (controls) {
-        for (const contorl of controls) {
-          contorl.sync();
+        for (const control of controls) {
+          control.sync();
         }
       }
     };
@@ -278,10 +278,12 @@ export class VoxelPathControls {
 
   private rebuildControls() {
     if (!this.path) return;
-    for (const contorl of this._pointControls) {
-      contorl.dispose();
+    for (const control of this._pointControls) {
+      control.dispose();
     }
     this._pointControls = [];
+    //controls are re-created below so drop the old (disposed) ones
+    this._controlMap.clear();
     const lastSegment = this.path.lastSegment();
     for (let i = 0; i < this.path.segments.length; i++) {
       const segment = this.path.segments[i];
@@ -370,7 +372,7 @@ export class VoxelPathControls {
     const onRender = this.scene.onBeforeRenderObservable.add(() => {
       this.mesh.build();
       if (this._activeControl) {
-        this._activeControl.control.update(
+        this._activeControl.control?.update(
           this._mouseDown,
           this.rayProvider.origin,
           this.rayProvider.direction,

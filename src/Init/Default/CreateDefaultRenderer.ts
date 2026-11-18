@@ -3,7 +3,7 @@ import { DVEBabylonRenderer } from "../../Renderer/DVEBabylonRenderer.js";
 import {
   DVEBRDefaultMaterialBaseData,
   NodeSubstanceData,
-} from "../../Matereials/DVEBRMaterial.types.js";
+} from "../../Materials/DVEBRMaterial.types.js";
 
 import type { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
@@ -15,7 +15,7 @@ import InitDefaultEffects from "../../Effects/InitDefaultEffects.js";
 import { TextureData } from "@divinevoxel/vlox/Textures/Texture.types.js";
 import { ImageArrayTexture } from "../../Textures/ImageArrayTexture.js";
 import { CacheManager } from "@divinevoxel/vlox/Cache/CacheManager.js";
-import { MaterialInterface } from "../../Matereials/MaterialInterface.js";
+import { MaterialInterface } from "../../Materials/MaterialInterface.js";
 import { WorkItemProgress } from "@divinevoxel/vlox/Util/WorkItemProgress.js";
 import "@babylonjs/core/Animations/animatable";
 import { EngineSettings } from "@divinevoxel/vlox/Settings/EngineSettings.js";
@@ -24,6 +24,10 @@ import { VoxelBaseShader } from "../../Shaders/Code/VoxelBaseShader";
 import { ItemShader } from "../../Shaders/Code/ItemShader";
 import { VoxelParticleShader } from "../../Shaders/Code/VoxelParticleShader";
 import { VoxelPBRShader } from "../../Shaders/Code/VoxelPBRShader";
+import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
+import { Geometry } from "@babylonjs/core/Meshes/geometry.js";
+import { DVEBRVoxelMesh } from "../../Meshes/DVEBRVoxelMesh.js";
+import { VoxelMeshVertexStructCursor } from "@divinevoxel/vlox/Mesher/Voxels/Geometry/VoxelMeshVertexStructCursor";
 
 const defaultMaterials = [
   "dve_glow",
@@ -152,7 +156,47 @@ export async function CreateTextures(
     };
   }
   progress.setStatus("Done");
-  await progress.wait(100);
+  await progress.nextFrame();
+}
+
+async function PrecompileVoxelMaterials(
+  scene: Scene,
+  mats: MaterialInterface[],
+) {
+  const mesh = new Mesh("", scene);
+  mesh.isVisible = false;
+  mesh.isPickable = false;
+  mesh.doNotSerialize = true;
+  new Geometry(Geometry.RandomId(), scene, undefined, false, mesh);
+  DVEBRVoxelMesh.UpdateVertexDataBuffers(
+    mesh,
+    scene.getEngine() as Engine,
+    new Float32Array(VoxelMeshVertexStructCursor.VertexFloatSize * 3),
+    new Uint32Array([0, 1, 2]),
+  );
+  await Promise.all(
+    mats.map((mat) => {
+      const material = mat._material;
+      if (material._storeEffectOnSubMeshes) {
+        return material.forceCompilationAsync(mesh).catch((error) => {
+          console.warn(`Failed to precompile material ${mat.id}`, error);
+        });
+      }
+      return new Promise<void>((resolve) => {
+        let tries = 0;
+        const check = () => {
+          if (material.isReady(mesh)) return resolve();
+          if (++tries > 300) {
+            console.warn(`Failed to precompile material ${mat.id}`);
+            return resolve();
+          }
+          setTimeout(check, 16);
+        };
+        check();
+      });
+    }),
+  );
+  mesh.dispose();
 }
 
 export async function CreateDefaultRenderer(
@@ -217,6 +261,7 @@ export async function CreateDefaultRenderer(
   });
   const substances = [...DefaultSubstances, ...initData.substances];
   const mats: MaterialInterface[] = [];
+  const voxelMats: MaterialInterface[] = [];
 
   for (const substance of substances) {
     const mat = {
@@ -235,6 +280,7 @@ export async function CreateDefaultRenderer(
       }
     }
     mats.push(newMat);
+    voxelMats.push(newMat);
   }
 
   const materials: NodeMaterialData[] = [];
@@ -260,7 +306,7 @@ export async function CreateDefaultRenderer(
     renderer.materials.register(mat.id, newMat);
     mats.push(newMat);
   }
-  const needUBOSync = !SceneUBO.UniformBufferSuppourted;
+  const needUBOSync = !SceneUBO.UniformBufferSupported;
   let time = 0;
   scene.onBeforeRenderObservable.add((scene) => {
     if (scene.deltaTime === undefined) return;
@@ -285,8 +331,9 @@ export async function CreateDefaultRenderer(
   });
 
   InitDefaultEffects();
+  await PrecompileVoxelMaterials(scene, voxelMats);
   progress.completeWorkItems(4);
   progress.setStatus("Done");
-  await progress.wait(100);
+  await progress.nextFrame();
   return renderer;
 }

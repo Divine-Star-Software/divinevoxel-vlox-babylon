@@ -1,5 +1,5 @@
-import { DVEBRClassicMaterial } from "../../Matereials/Classic/DVEBRClassicMaterial";
-import { DVEBRDefaultMaterialBaseData } from "../../Matereials/DVEBRMaterial.types";
+import { DVEBRClassicMaterial } from "../../Materials/Classic/DVEBRClassicMaterial";
+import { DVEBRDefaultMaterialBaseData } from "../../Materials/DVEBRMaterial.types";
 import {
   CreateDefaultRenderer,
   CreateTextures,
@@ -27,7 +27,7 @@ export default async function InitDVEBRClassic(initData: DVEBRClassicData) {
   if (initData.getProgress) initData.getProgress(progress);
   progress.startTask("Init Classic Renderer");
   const engine = initData.scene.getEngine();
-  SceneUBO.UniformBufferSuppourted = engine.supportsUniformBuffers;
+  SceneUBO.UniformBufferSupported = engine.supportsUniformBuffers;
   RegisterDefaultShaders();
   await CreateTextures(initData.scene, initData.textureData, progress);
 

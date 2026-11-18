@@ -111,14 +111,14 @@ export class VoxelExplodeSelectionParticles {
     this._sps.updateParticle = (particle) => {
       temp.copyFrom(particle.position);
       temp.addInPlace(particle.velocity);
-      const ligtvoxel = this.dataCursor.getVoxel(
+      const lightVoxel = this.dataCursor.getVoxel(
         Math.floor(temp.x),
         Math.floor(temp.y),
         Math.floor(temp.z)
       );
 
-      if (ligtvoxel) {
-        const light = ligtvoxel.getLight();
+      if (lightVoxel) {
+        const light = lightVoxel.getLight();
         if (light >= 0) particle.color!.b = light;
       }
       if (

@@ -36,11 +36,11 @@ export class GenMapTilesRegister {
 
   dimensions = {
     add: (id: number) => {
-      const dimesnion = new Map();
+      const dimension = new Map();
       this._dimensions.set(id, {
         sectors: new Map(),
       });
-      return dimesnion;
+      return dimension;
     },
     get: (id: number) => {
       return this._dimensions.get(id);
@@ -66,7 +66,7 @@ export class GenMapTilesRegister {
         dimensionId,
         ...WorldSpaces.sector.getPositionVec3Array(x, y, z, tempPositionArray)
       );
-      tile._dispoed = false;
+      tile._disposed = false;
       dimension.sectors.set(
         WorldSpaces.hash.hashVec3Array(tile.position),
         tile

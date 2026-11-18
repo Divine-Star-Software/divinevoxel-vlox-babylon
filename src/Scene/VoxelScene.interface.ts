@@ -25,7 +25,7 @@ export abstract class VoxelSceneInterface<MeshType extends any> {
     z: number
   ): void;
 
-  abstract beforRender(): void;
+  abstract beforeRender(): void;
 
   abstract render(): void;
 }

@@ -68,7 +68,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
     }
 
     const uniforms: string[] = [...shaderData.uniforms];
-    if (!this.options.ubo.suppourtsUBO) {
+    if (!this.options.ubo.supportsUBO) {
       uniforms.push(...this.options.ubo.allUniformsNames);
     }
 
@@ -82,7 +82,7 @@ export class DVEBRClassicMaterial implements MaterialInterface<MatData> {
         samplers: shaderData.samplers,
         needAlphaBlending: data.alphaBlending,
         needAlphaTesting: data.alphaTesting,
-        ...(this.options.ubo.suppourtsUBO
+        ...(this.options.ubo.supportsUBO
           ? {
               uniformBuffers: ["SceneOptions"],
             }

@@ -16,7 +16,7 @@ in vec3 position;
 uniform mat4 world;
 uniform mat4 viewProjection;
 #ifdef INSTANCES
-  //matricies
+  //matrices
   in vec4 world0;
   in vec4 world1;
   in vec4 world2;
@@ -89,9 +89,25 @@ export class VoxelLineMesh extends Mesh {
     this.material = this._material;
   }
 
+  private _lastPositions: number[] | null = null;
   build() {
-    this.setVerticesData(VertexBuffer.PositionKind, this.positions);
-    this.setIndices(this.indices);
+    const positions = this.positions;
+    const last = this._lastPositions;
+    //skip re-uploading the buffers if the geometry did not change
+    let same = last !== null && last.length == positions.length;
+    if (same) {
+      for (let i = 0; i < positions.length; i++) {
+        if (positions[i] !== last![i]) {
+          same = false;
+          break;
+        }
+      }
+    }
+    if (!same) {
+      this.setVerticesData(VertexBuffer.PositionKind, positions);
+      this.setIndices(this.indices);
+      this._lastPositions = positions;
+    }
     this.positions = [];
     this.indices = [];
   }
@@ -161,10 +177,10 @@ export class VoxelLineMesh extends Mesh {
     );
   }
 
+  /**Clears the pending geometry. The current buffers are kept until the next build.*/
   clear() {
-    for (const bufferKind in this.getVerticesDataKinds()) {
-      this.removeVerticesData(bufferKind);
-    }
+    this.positions = [];
+    this.indices = [];
   }
 
   dispose() {

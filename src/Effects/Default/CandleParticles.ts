@@ -17,7 +17,7 @@ export class CandleParticles extends VoxelEffect {
 
   init(): void {
     const scene = DVEBabylonRenderer.instance.scene;
-    const meshPositoin = this.mesh.getPosition();
+    const meshPosition = this.mesh.getPosition();
 
     {
       const particles = new ParticleSystem("", 1000, scene);
@@ -56,9 +56,9 @@ export class CandleParticles extends VoxelEffect {
       particles.startPositionFunction = (worldMatrix, positionToUpdate) => {
         const randomEmitter =
           Math.floor(Math.random() * (this.points.length / 3)) * 3;
-        positionToUpdate.x = this.points[randomEmitter] + meshPositoin[0];
-        positionToUpdate.y = this.points[randomEmitter + 1] + meshPositoin[1];
-        positionToUpdate.z = this.points[randomEmitter + 2] + meshPositoin[2];
+        positionToUpdate.x = this.points[randomEmitter] + meshPosition[0];
+        positionToUpdate.y = this.points[randomEmitter + 1] + meshPosition[1];
+        positionToUpdate.z = this.points[randomEmitter + 2] + meshPosition[2];
       };
 
       particles.start();
@@ -89,19 +89,19 @@ export class CandleParticles extends VoxelEffect {
       particles.startPositionFunction = (worldMatrix, positionToUpdate) => {
         const randomEmitter =
           Math.floor(Math.random() * (this.points.length / 3)) * 3;
-        positionToUpdate.x = this.points[randomEmitter] + meshPositoin[0];
-        positionToUpdate.y = this.points[randomEmitter + 1] + meshPositoin[1];
-        positionToUpdate.z = this.points[randomEmitter + 2] + meshPositoin[2];
+        positionToUpdate.x = this.points[randomEmitter] + meshPosition[0];
+        positionToUpdate.y = this.points[randomEmitter + 1] + meshPosition[1];
+        positionToUpdate.z = this.points[randomEmitter + 2] + meshPosition[2];
       };
 
       particles.start();
     }
   }
 
-  setPoints(pointss: Float32Array) {
-    this.points = pointss;
-    this.flameParticles.emitRate = pointss.length / 3;
-    this.smokeParticles.emitRate = pointss.length / 3;
+  setPoints(points: Float32Array) {
+    this.points = points;
+    this.flameParticles.emitRate = points.length / 3;
+    this.smokeParticles.emitRate = points.length / 3;
   }
 
   dispose() {

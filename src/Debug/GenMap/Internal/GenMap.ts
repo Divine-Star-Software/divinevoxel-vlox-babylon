@@ -48,7 +48,7 @@ export class GenMap {
     );
     this._instanceMesh.setVerticesData(VertexBuffer.UVKind, quadData.uvs);
     this._instanceMesh.setVerticesData(VertexBuffer.UVKind, quadData.uvs);
-    this._instanceMesh.setIndices(quadData.indicies);
+    this._instanceMesh.setIndices(quadData.indices);
     this._instanceTool = new EntityTool(this._instanceMesh);
     this._instanceMesh.alwaysSelectAsActiveMesh = true;
     this.tilesMaterial = GenMapTileMaterial.create(scene);
@@ -99,7 +99,7 @@ export class GenMap {
         );
         if (distance > 300) {
           const tile = GenMapTile.Tiles[i];
-          this.tilesRegister.sectors.remove(tile.dimensonId, ...tile.position);
+          this.tilesRegister.sectors.remove(tile.dimensionId, ...tile.position);
           GenMapTile.Tiles.splice(i, 1);
         }
       }

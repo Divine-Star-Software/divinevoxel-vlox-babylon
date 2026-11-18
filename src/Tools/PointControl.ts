@@ -358,14 +358,14 @@ export class PointControl extends TypedEventTarget<VoxelControlsEvents> {
     tempRay.direction.set(rayDirection.x, rayDirection.y, rayDirection.z);
     tempRay.length = length;
 
-    const activFace = this.getActiveFace();
-    if (!activFace) {
+    const activeFace = this.getActiveFace();
+    if (!activeFace) {
       for (const f of this.faces) {
         f.update(tempRay, mouseDown);
         if (this.isActive()) break;
       }
     } else {
-      activFace.update(tempRay, mouseDown);
+      activeFace.update(tempRay, mouseDown);
     }
 
     if (this.faces.some((f) => f._dirty)) {
@@ -381,5 +381,6 @@ export class PointControl extends TypedEventTarget<VoxelControlsEvents> {
   dispose() {
     for (const f of this.faces) f.dispose();
     this.material.dispose();
+    this.parent.dispose();
   }
 }

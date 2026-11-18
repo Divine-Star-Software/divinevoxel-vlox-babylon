@@ -54,14 +54,14 @@ class PositionAxes {
   _dirty = false;
 
   get axesIndex() {
-    return Vector3Like.KeyIndexes()[this.axex];
+    return Vector3Like.KeyIndexes()[this.axes];
   }
 
   get hover() {
     return this._states[this.axesIndex * 4] == 1;
   }
-  set hover(hovver: boolean) {
-    this._states[this.axesIndex * 4] = hovver ? 1 : 0;
+  set hover(hover: boolean) {
+    this._states[this.axesIndex * 4] = hover ? 1 : 0;
     this._dirty = true;
   }
 
@@ -80,7 +80,7 @@ class PositionAxes {
   constructor(
     public controls: VoxelControls,
     public normal: Vector3,
-    public axex: Vector3Axes,
+    public axes: Vector3Axes,
     public _states: Float32Array
   ) {
     const tempMesh = CreateBox(
@@ -93,13 +93,13 @@ class PositionAxes {
       this.controls.scene
     );
 
-    const mesh = new Mesh(`${axex}`, this.controls.scene);
+    const mesh = new Mesh(`${axes}`, this.controls.scene);
     this.mesh = mesh;
-    const positons = tempMesh.getVerticesData(VertexBuffer.PositionKind)!;
-    mesh.setVerticesData(VertexBuffer.PositionKind, positons);
+    const positions = tempMesh.getVerticesData(VertexBuffer.PositionKind)!;
+    mesh.setVerticesData(VertexBuffer.PositionKind, positions);
     const colors: number[] = [];
     let j = 0;
-    for (let i = 0; i < positons.length; i += 3) {
+    for (let i = 0; i < positions.length; i += 3) {
       colors[j] = this.axesIndex;
       j++;
     }
@@ -147,7 +147,7 @@ class PositionAxes {
     if (this.active && !mouseDown) {
       this.active = false;
       this.controls._controlActive = false;
-      this.controls.dispatch("inactive", this.axex);
+      this.controls.dispatch("inactive", this.axes);
       return;
     }
 
@@ -259,7 +259,7 @@ class PositionAxes {
         }
 
         this.controls._controlActive = true;
-        this.controls.dispatch("active", this.axex);
+        this.controls.dispatch("active", this.axes);
       }
       if (!this.hover) this.hover = true;
     } else {
@@ -420,5 +420,6 @@ export class VoxelControls extends TypedEventTarget<VoxelControlsEvents> {
     this.yAxes.dispose();
     this.zAxes.dispose();
     this.material.dispose();
+    this.parent.dispose();
   }
 }

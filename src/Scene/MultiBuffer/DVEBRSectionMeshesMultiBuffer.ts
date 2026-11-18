@@ -18,7 +18,7 @@ import { LocationData } from "@divinevoxel/vlox/Math";
 const min = Vector3.Zero();
 const max = new Vector3(16, 16, 16);
 const empty = new Float32Array(1);
-const emptyIndice = new Uint16Array(1);
+const emptyIndices = new Uint16Array(1);
 const meshData = new CompactedMeshData();
 const location: LocationData = [0, 0, 0, 0];
 const found = new Set<string>();
@@ -102,7 +102,7 @@ export class DVEBRSectionMeshesMultiBuffer extends DVESectionMeshes {
       mesh.metadata.buffer = DVEBRVoxelMesh.UpdateVertexDataBuffers(
         mesh,
         this.engine,
-        meshData.verticies,
+        meshData.vertices,
         meshData.indices,
       );
 

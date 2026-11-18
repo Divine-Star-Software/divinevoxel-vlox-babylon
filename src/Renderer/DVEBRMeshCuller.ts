@@ -8,12 +8,27 @@ import { Constants } from "@babylonjs/core/Engines/constants";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { Frustum } from "@babylonjs/core/Maths/math.frustum";
 import { Plane } from "@babylonjs/core/Maths/math.plane";
+import { SmartArray } from "@babylonjs/core/Misc/smartArray";
+import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 const min = new Vector3();
 const max = new Vector3(16, 16, 16);
 const boundingBox = new BoundingBox(min, max);
 
+/*
+  Babylon's _evaluateActiveMeshes walks every mesh in the scene each frame
+  (isReady, LOD, enabled checks...), and section meshes are most of the scene,
+  so the cost grew with the size of the loaded world. CullSectors already
+  knows which section meshes are visible, so it hands Babylon only those plus
+  the scene's non-section meshes via scene.getActiveMeshCandidates.
+*/
+const candidates = new SmartArray<AbstractMesh>(1024);
+/** Scene meshes that are not section meshes (player, particles, sky...). */
+const otherMeshes = new Set<AbstractMesh>();
+const isSectionMesh = (mesh: AbstractMesh) => !!mesh.metadata?.section;
+
 function CullSectors(scene: Scene, light: DirectionalLight | null) {
+  candidates.reset();
   const camera = scene.activeCamera;
   if (!camera) return;
 
@@ -54,6 +69,7 @@ function CullSectors(scene: Scene, light: DirectionalLight | null) {
               mesh.getBoundingInfo().isInFrustum(lightFrustumPlanes))
           ) {
             mesh.isVisible = true;
+            candidates.push(mesh);
           } else {
             mesh.isVisible = false;
           }
@@ -61,19 +77,31 @@ function CullSectors(scene: Scene, light: DirectionalLight | null) {
       }
     }
   }
+  for (const mesh of otherMeshes) {
+    // Section meshes are tagged after they are added to the scene.
+    if (isSectionMesh(mesh)) {
+      otherMeshes.delete(mesh);
+      continue;
+    }
+    candidates.push(mesh);
+  }
 }
 
 export class DVEBRMeshCuller {
   light: DirectionalLight | null = null;
   init(scene: Scene, bufferMode: "single" | "multi") {
     //   scene.freezeActiveMeshes(true);
+    for (const mesh of scene.meshes) otherMeshes.add(mesh);
+    scene.onNewMeshAddedObservable.add((mesh) => otherMeshes.add(mesh));
+    scene.onMeshRemovedObservable.add((mesh) => otherMeshes.delete(mesh));
     scene.registerBeforeRender(() => {
       CullSectors(scene, this.light);
     });
+    scene.getActiveMeshCandidates = () => candidates;
 
     //   myManualActiveMeshes.push();
 
-    /*     const orignal = (scene as any)._evaluateActiveMeshes.bind(scene);
+    /*     const original = (scene as any)._evaluateActiveMeshes.bind(scene);
     (scene as any)._evaluateActiveMeshes = () => {
       sceneMeshes.length = 0;
       CullSectors(scene);

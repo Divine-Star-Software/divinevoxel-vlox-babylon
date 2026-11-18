@@ -9,7 +9,7 @@ export class SkyboxShader {
 precision highp float;
 
 ${
-  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+  SceneUBO.UniformBufferSupported ? SceneUBO.Define : SceneUBO.BaseDefine
 }     
 
 //uniforms
@@ -42,7 +42,7 @@ precision highp sampler2DArray;
 
 
 ${
-  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+  SceneUBO.UniformBufferSupported ? SceneUBO.Define : SceneUBO.BaseDefine
 }     
 
 //uniforms
@@ -74,7 +74,7 @@ precision highp sampler2DArray;
 
 
 ${
-  SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine
+  SceneUBO.UniformBufferSupported ? SceneUBO.Define : SceneUBO.BaseDefine
 }     
 
 //uniforms

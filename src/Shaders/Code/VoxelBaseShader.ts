@@ -31,7 +31,7 @@ ${VoxelShader.TextureUniforms}
 
 
 //uniforms
-${SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine}     
+${SceneUBO.UniformBufferSupported ? SceneUBO.Define : SceneUBO.BaseDefine}     
 
 uniform mat4 world;
 uniform mat4 view;
@@ -46,7 +46,7 @@ ${VoxelShader.Attributes}
 ${props.attributes || ""}
 
 #ifdef INSTANCES
-//matricies
+//matrices
 in vec4 world0;
 in vec4 world1;
 in vec4 world2;
@@ -184,7 +184,7 @@ precision highp sampler2DArray;
 ${props.top || ""}
 
 //uniforms
-${SceneUBO.UniformBufferSuppourted ? SceneUBO.Define : SceneUBO.BaseDefine}     
+${SceneUBO.UniformBufferSupported ? SceneUBO.Define : SceneUBO.BaseDefine}     
 ${VoxelShader.TextureUniforms}
 uniform vec3 cameraPosition;
 

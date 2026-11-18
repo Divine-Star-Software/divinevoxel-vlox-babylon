@@ -144,7 +144,7 @@ export class VoxelSelectionHighlight {
   }
 
   private _enabled = true;
-  isEnaebled() {
+  isEnabled() {
     return this._enabled;
   }
   setEnabled(enabled: boolean) {
@@ -195,7 +195,7 @@ export class VoxelSelectionHighlight {
 
     if (addedVoxelFace) {
       this.mesh.build();
-      this.mesh.setEnabled(this.isEnaebled());
+      this.mesh.setEnabled(this.isEnabled());
     } else {
       this.mesh.setEnabled(false);
     }

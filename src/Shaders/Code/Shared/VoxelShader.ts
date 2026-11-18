@@ -37,7 +37,7 @@ const vec2 quadUVArray[4] = vec2[4](vec2(1.,1.),vec2(0.,1.),vec2(0.,0.),vec2(1.,
   `;
   static TextureConstants = /* glsl */ `
     const uint textureIndexMask = uint(0xffff);
-    const uint mainTexutreIndex = uint(0);
+    const uint mainTextureIndex = uint(0);
     const uint secondaryTextureIndex = uint(0xf + 0x1);
   `;
 

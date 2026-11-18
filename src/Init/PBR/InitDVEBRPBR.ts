@@ -1,5 +1,5 @@
-import { DVEBRPBRMaterial } from "../../Matereials/PBR/DVEBRPBRMaterial";
-import { DVEBRDefaultMaterialBaseData } from "../../Matereials/DVEBRMaterial.types";
+import { DVEBRPBRMaterial } from "../../Materials/PBR/DVEBRPBRMaterial";
+import { DVEBRDefaultMaterialBaseData } from "../../Materials/DVEBRMaterial.types";
 import {
   CreateDefaultRenderer,
   CreateTextures,
@@ -26,7 +26,7 @@ export default async function InitDVEPBR(initData: DVEBRPBRData) {
   progress.startTask("Init PBR Renderer");
   const scene = initData.scene;
   const engine = initData.scene.getEngine();
-  SceneUBO.UniformBufferSuppourted = engine.supportsUniformBuffers;
+  SceneUBO.UniformBufferSupported = engine.supportsUniformBuffers;
   RegisterDefaultShaders();
 
   await CreateTextures(scene, initData.textureData, progress);
